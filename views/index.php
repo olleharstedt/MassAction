@@ -16,10 +16,64 @@ $(document).ready(function() {
     ];
 
     var container = document.getElementById('handsontable');
-    var hot = new Handsontable(container, {
-        data: data,
-        rowHeaders: true,
-        colHeaders: true
+    var getQuestionsLink = '<?php echo $getQuestionsLink; ?>';
+    var saveQuestionChangeLink = '<?php echo $saveQuestionChangeLink; ?>';
+    var surveyId = '<?php echo $surveyId; ?>';
+
+    $.ajax({
+        method: 'GET',
+        url: getQuestionsLink,
+    }).done( function(data) {
+        console.log("here");
+        console.log(data);
+
+        var data = JSON.parse(data);
+
+        var hot = new Handsontable(container, {
+            data: data.data,
+            rowHeaders: true,
+            colHeaders: data.colHeaders,
+            columns: data.columns,
+            afterChange: function(change, action) {
+
+                if (change === null)
+                {
+                    return;
+                }
+
+                var change = change[0];  // Only one change
+                console.log('change', change);
+                var rowNumber = change[0];
+                var columnName = change[1];
+                var oldValue = change[2];
+                var newValue = change[3];
+                var row = data.data[rowNumber];
+
+                if (row === undefined)
+                {
+                    throw "Internal error: found no row with number " + rowNumber;
+                }
+
+                $.ajax({
+                    method: 'POST',
+                    url: saveQuestionChangeLink,
+                    data: {
+                        row: row,
+                        change: change,
+                        surveyId: surveyId
+                    }
+                }).done(function(response) {
+                    console.log("done saving");
+                    console.log(response);
+                });
+
+                // action can be "edit" or "undo"
+
+                //console.log('a', a);
+                //console.log('b', b);
+            }
+        });
+
     });
 });
 </script>
