@@ -8,7 +8,7 @@
  */
 class MassAction extends \ls\pluginmanager\PluginBase
 {
-    static protected $description = 'Creates a new entry in the tools menu to do mass actions on questions and question groups.';
+    static protected $description = 'Edit many questions or question groups in one page';
     static protected $name = 'Mass action';
 
     protected $storage = 'DbStorage';
