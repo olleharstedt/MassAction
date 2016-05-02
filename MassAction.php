@@ -185,8 +185,12 @@ class MassAction extends \ls\pluginmanager\PluginBase
         // Header
         $colHeaders = array(
             gT('QID'),
-            gT('Title'),
-            gT('Question')
+            gT('Code'),
+            gT('Question'),
+            gT('Help'),
+            gT('Mandatory'),
+            gT('Relevance equation'),
+            gT('Validation')
         );
 
         // handsontable needs this information for
@@ -202,6 +206,18 @@ class MassAction extends \ls\pluginmanager\PluginBase
             ),
             array(
                 'data' => 'question',
+            ),
+            array(
+                'data' => 'help',
+            ),
+            array(
+                'data' => 'mandatory',
+            ),
+            array(
+                'data' => 'relevance',
+            ),
+            array(
+                'data' => 'preg',
             )
         );
 
