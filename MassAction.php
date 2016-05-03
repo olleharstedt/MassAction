@@ -1,5 +1,7 @@
 <?php
 
+use \ls\menu\MenuItem;
+
 /**
  * Mass action
  *
@@ -35,7 +37,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
             )
         );
 
-        $menuItem = new ExtraMenuItem(array(
+        $menuItem = new MenuItem(array(
             'label' => gT('Mass action'),
             'iconClass' => 'fa fa-table',
             'href' => $href
