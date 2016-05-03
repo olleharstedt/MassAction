@@ -245,16 +245,18 @@ class MassAction extends \ls\pluginmanager\PluginBase
     public function newDirectRequest()
     {
         $event = $this->event;
+        if ($event->get('target') == "MassAction")
+        {
+            // you can get other params from the request object
+            $request = $event->get('request');
 
-        // you can get other params from the request object
-        $request = $event->get('request');
-
-        //get the function name to call and use the method call_user_func
-        $functionToCall = $event->get('function'); 
-        //$content = call_user_func(array($this,$functionToCall), $surveyId);
-        //set the content on the event
-        //$event->setContent($this, $content);
-        echo $this->$functionToCall($request);
+            //get the function name to call and use the method call_user_func
+            $functionToCall = $event->get('function'); 
+            //$content = call_user_func(array($this,$functionToCall), $surveyId);
+            //set the content on the event
+            //$event->setContent($this, $content);
+            echo $this->$functionToCall($request);
+        }
     }
 
 }
