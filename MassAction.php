@@ -106,16 +106,24 @@ class MassAction extends \ls\pluginmanager\PluginBase
             )
         );
 
-        $buttons = array(
-            new QuickMenuButton(array(
+        $button = new QuickMenuButton(array(
+                'name' => 'massAction',
                 'href' => $href,
                 'tooltip' => gT('Mass action'),
                 'iconClass' => 'fa fa-table navbar-brand',
                 'neededPermission' => array('surveycontent', 'update')
-            ))
+            )
         );
+        $db = Yii::app()->db;
+        $userId = Yii::app()->user->getId();
+        $orderings = ExtraQuickMenuItems::getOrder($userId);
+        if (isset($orderings['massAction']))
+        {
+            $button->setOrder($orderings['massAction']);
+        }
+        
 
-        $event->append('quickMenuItems', $buttons);
+        $event->append('quickMenuItems', array($button));
     }
 
     /**
