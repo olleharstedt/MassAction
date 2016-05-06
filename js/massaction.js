@@ -13,8 +13,9 @@ function afterChange(change, action, data, saveLink)
         return;
     }
 
+    $('#mass-action-saving').removeClass('hide');
+
     var change = change[0];  // Only one change
-    console.log('change', change);
     var rowNumber = change[0];
     var columnName = change[1];
     var oldValue = change[2];
@@ -35,8 +36,29 @@ function afterChange(change, action, data, saveLink)
             surveyId: LS.plugin.massAction.surveyId
         }
     }).done(function(response) {
-        console.log("done saving");
-        console.log(response);
+        $('#mass-action-saving').addClass('hide');
+        var data = JSON.parse(response);
+
+        if (data.result == 'success')
+        {
+            $('#mass-action-saving-done').removeClass('hide');
+            $('#mass-action-saving-done').show();
+            clearTimeout(LS.plugin.massAction.t);
+            LS.plugin.massAction.t = setTimeout(function() {
+                $('#mass-action-saving-done').fadeOut(500);
+            }, 2000);
+        }
+        else if(data.result == 'error')
+        {
+            $('#mass-action-error-message').html(data.message);
+            $('#mass-action-saving-error').removeClass('hide');
+            $('#mass-action-saving-error').show();
+            clearTimeout(LS.plugin.massAction.t);
+            LS.plugin.massAction.t = setTimeout(function() {
+                $('#mass-action-saving-error').fadeOut(500);
+            }, 2000);
+        }
+
     });
 }
 
@@ -48,8 +70,6 @@ function loadQuestions() {
         method: 'GET',
         url: LS.plugin.massAction.getQuestionsLink,
     }).done(function(data) {
-        console.log("here");
-        console.log(data);
 
         var data = JSON.parse(data);
 
@@ -75,7 +95,6 @@ function loadQuestionGroups()
         method: 'GET',
         url: LS.plugin.massAction.getQuestionGroupsLink,
     }).done(function(data) {
-        console.log(data);
 
         var data = JSON.parse(data);
 

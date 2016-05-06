@@ -4,6 +4,9 @@
         <p>
             <div class='btn btn-default' onclick='loadQuestions();'><?php echo gT("Load questions"); ?></div>
             <div class='btn btn-default' onclick='loadQuestionGroups();'><?php echo gT("Load question groups"); ?></div>
+            <div id='mass-action-saving' class='hide' style='display: inline-block;'><span class='fa fa-spinner fa-spin'></span>&nbsp;<?php eT("Saving data..."); ?></div>
+            <div id='mass-action-saving-done' class='hide' style='display: inline-block;'><span class='fa fa-check'></span>&nbsp;<?php eT("All changes saved"); ?></div>
+            <div id='mass-action-saving-error' class='hide' style='display: inline-block;'><span class='fa fa-exclamation'></span>&nbsp;<?php eT("Could not save data:"); ?>&nbsp;<span id='mass-action-error-message'></span></div>
         </p>
         <div id="handsontable">
         </div>
@@ -31,6 +34,5 @@ $(document).ready(function() {
         ["2017", 20, 11, 14, 13],
         ["2018", 30, 15, 12, 13]
     ];
-
 });
 </script>
