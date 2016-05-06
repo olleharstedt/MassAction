@@ -69,10 +69,30 @@ class MassAction extends \ls\pluginmanager\PluginBase
             )
         );
 
+        $getQuestionGroupsLink = Yii::app()->createUrl(
+            'plugins/direct',
+            array(
+                'plugin' => 'MassAction',
+                'function' => 'getQuestionGroups',
+                'surveyId' => $surveyId
+            )
+        );
+
+        $saveQuestionGroupChangeLink = Yii::app()->createUrl(
+            'plugins/direct',
+            array(
+                'plugin' => 'MassAction',
+                'function' => 'saveQuestionGroupChange',
+                'surveyId' => $surveyId
+            )
+        );
+
         $data = array();
         $data['surveyId'] = $surveyId;
         $data['getQuestionsLink'] = $getQuestionsLink;
+        $data['getQuestionGroupsLink'] = $getQuestionGroupsLink;
         $data['saveQuestionChangeLink'] = $saveQuestionChangeLink;
+        $data['saveQuestionGroupChangeLink'] = $saveQuestionGroupChangeLink;
 
         Yii::setPathOfAlias('massAction', dirname(__FILE__));
         $content = Yii::app()->controller->render('massAction.views.index', $data, true);
@@ -84,9 +104,15 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/css');
         App()->clientScript->registerCssFile("$assetsUrl/mass-action.css");
 
+        $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/js');
+        App()->clientScript->registerScriptFile("$assetsUrl/massaction.js");
+
         return $content;
     }
 
+    /**
+     * @return void
+     */
     public function afterQuickMenuLoad()
     {
         $event = $this->getEvent();
@@ -128,6 +154,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
     /**
      * @param LSHttpRequest $request
+     * @return string - Result as json
      */
     public function saveQuestionChange(LSHttpRequest $request)
     {
@@ -250,6 +277,119 @@ class MassAction extends \ls\pluginmanager\PluginBase
             'data' => $data
         ));
 
+    }
+
+    /**
+     * @param LSHttpRequest $request
+     * @return json string
+     */
+    public function getQuestionGroups(LSHttpRequest $request)
+    {
+        $surveyId = $request->getParam('surveyId');
+        $baselang = Survey::model()->findByPk($surveyId)->language;
+        $questionGroups = QuestionGroup::model()->findAllByAttributes(array(
+            'sid' => $surveyId,
+            'language' => $baselang
+        ));
+
+        return $this->questionGroupsToJSON($questionGroups);
+    }
+
+    /**
+     * @return json string
+     */
+    public function questionGroupsToJSON($questionGroups)
+    {
+        // Header
+        $colHeaders = array(
+            gT('GID'),
+            gT('Title'),
+            gT('Description'),
+            gT('Randomization group'),
+            gT('Relevance equation'),
+        );
+
+        // handsontable needs this information for
+        // readonly option
+        $columns = array(
+            // TODO: hidden?
+            array(
+                'data' => 'gid',
+                'readOnly' => true
+            ),
+            array(
+                'data' => 'group_name',
+            ),
+            array(
+                'data' => 'description',
+            ),
+            array(
+                'data' => 'randomization_group',
+            ),
+            array(
+                'data' => 'grelevance',
+            )
+        );
+
+        $data = array();
+
+        foreach ($questionGroups as $questionGroup)
+        {
+            $groupArr = array();
+            foreach ($columns as $column)
+            {
+                $field = $column['data'];
+                $groupArr[$field] = $questionGroup->$field;
+            }
+            $data[] = $groupArr;
+        }
+
+        return json_encode(array(
+            'colHeaders' => $colHeaders,
+            'columns' => $columns,
+            'data' => $data
+        ));
+
+    }
+
+    /**
+     * Save change to question group field
+     *
+     * @param LSHttpRequest $request
+     * @return string - Result as json
+     * @todo Duplication of saveQuestionChange
+     */
+    public function saveQuestionGroupChange(LSHttpRequest $request)
+    {
+        try
+        {
+            $surveyId = $request->getParam('surveyId');
+            $row = $request->getParam('row');
+            $change = $request->getParam('change');
+            $baselang = Survey::model()->findByPk($surveyId)->language;
+
+            $questionGroup = QuestionGroup::model()->findByPk(array(
+                'gid' => $row['gid'],
+                'language' => $baselang
+            ));
+
+            $changedFieldName = $change[1];
+            $newValue = $change[3];
+
+            $questionGroup->$changedFieldName = $newValue;
+            $questionGroup->save();
+
+            // All well!
+            return json_encode(array('result' => 'success'));
+        }
+        catch (Exception $ex)
+        {
+            // Any error is sent as JSON to client
+            return json_encode(array(
+                'result' => 'error',
+                'message' => $ex->getMessage()
+            ));
+        }
     }
 
     public function newDirectRequest()
