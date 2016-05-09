@@ -75,7 +75,12 @@ function loadQuestions() {
 
         var data = JSON.parse(data);
 
+        var height = $('.side-body').height();
+        var width = $('.side-body').width();
+
         var hot = new Handsontable(LS.plugin.massAction.container, {
+            width: width - 100,
+            height: height - 100,
             data: data.data,
             rowHeaders: true,
             colHeaders: data.colHeaders,
@@ -104,7 +109,12 @@ function loadQuestionGroups()
 
         var data = JSON.parse(data);
 
+        var height = $('.side-body').height();
+        var width = $('.side-body').width();
+
         var hot = new Handsontable(LS.plugin.massAction.container, {
+            width: width - 100,
+            height: height - 100,
             data: data.data,
             rowHeaders: true,
             colHeaders: data.colHeaders,
