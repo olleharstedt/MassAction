@@ -66,6 +66,8 @@ function afterChange(change, action, data, saveLink)
  * Load questions into handsontable
  */
 function loadQuestions() {
+    $('#handsontable').html('');
+
     $.ajax({
         method: 'GET',
         url: LS.plugin.massAction.getQuestionsLink,
@@ -77,7 +79,9 @@ function loadQuestions() {
             data: data.data,
             rowHeaders: true,
             colHeaders: data.colHeaders,
+            colWidths: data.colWidths,
             columns: data.columns,
+            manualColumnResize: true,
             afterChange: function(change, action) {
                 afterChange(change, action, data, LS.plugin.massAction.saveQuestionChangeLink);
             }
@@ -91,6 +95,8 @@ function loadQuestions() {
  */
 function loadQuestionGroups()
 {
+    $('#handsontable').html('');
+
     $.ajax({
         method: 'GET',
         url: LS.plugin.massAction.getQuestionGroupsLink,
@@ -102,7 +108,9 @@ function loadQuestionGroups()
             data: data.data,
             rowHeaders: true,
             colHeaders: data.colHeaders,
+            colWidths: data.colWidths,
             columns: data.columns,
+            manualColumnResize: true,
             afterChange: function(change, action) {
                 afterChange(change, action, data, LS.plugin.massAction.saveQuestionGroupChangeLink);
             }
