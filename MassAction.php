@@ -142,7 +142,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         );
         $db = Yii::app()->db;
         $userId = Yii::app()->user->getId();
-        $orderings = ExtraQuickMenuItems::getOrder($userId);
+        $orderings = QuickMenu::getOrder($userId);
         if (isset($orderings['massAction']))
         {
             $button->setOrder($orderings['massAction']);
