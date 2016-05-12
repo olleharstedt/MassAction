@@ -4,7 +4,7 @@ Under development
 
 ### Requirements
 
-* Plugin ExtraQuickMenuItems
+* Activated QuickMenu core plugin
 * LimeSurvey 2.5
 
 ### Installation
