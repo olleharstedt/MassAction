@@ -66,6 +66,7 @@ function afterChange(change, action, data, saveLink)
  * Load questions into handsontable
  */
 function loadQuestions() {
+    $('#handsontable').html('');
     $.ajax({
         method: 'GET',
         url: LS.plugin.massAction.getQuestionsLink,
@@ -91,6 +92,7 @@ function loadQuestions() {
  */
 function loadQuestionGroups()
 {
+    $('#handsontable').html('');
     $.ajax({
         method: 'GET',
         url: LS.plugin.massAction.getQuestionGroupsLink,
