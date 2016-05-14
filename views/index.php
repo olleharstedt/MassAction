@@ -1,16 +1,28 @@
 <div class="row">
     <div class="col-lg-12 content-right">
+
         <h3><?php eT("Mass action");?></h3>
-        <p>
-            <div class='btn btn-default' onclick='loadQuestions();'><?php echo gT("Load questions"); ?></div>
-            <div class='btn btn-default' onclick='loadQuestionGroups();'><?php echo gT("Load question groups"); ?></div>
-            <div id='mass-action-saving' class='hide' style='display: inline-block;'><span class='fa fa-spinner fa-spin'></span>&nbsp;<?php eT("Saving data..."); ?></div>
-            <div id='mass-action-saving-done' class='hide' style='display: inline-block;'><span class='fa fa-check'></span>&nbsp;<?php eT("All changes saved"); ?></div>
-            <div id='mass-action-saving-error' class='hide' style='display: inline-block;'><span class='fa fa-exclamation'></span>&nbsp;<?php eT("Could not save data:"); ?>&nbsp;<span id='mass-action-error-message'></span></div>
-        </p>
+
+        <!-- Load buttons -->
+        <div class='btn btn-default' onclick='loadQuestions();'><?php echo gT("Load questions"); ?></div>
+        <div class='btn btn-default' onclick='loadQuestionGroups();'><?php echo gT("Load question groups"); ?></div>
+
+        <!-- Save spinner -->
+        <div id='mass-action-saving' class='hide' style='display: inline-block;'><span class='fa fa-spinner fa-spin'></span>&nbsp;<?php eT("Saving data..."); ?></div>
+        <div id='mass-action-saving-done' class='hide' style='display: inline-block;'><span class='fa fa-check'></span>&nbsp;<?php eT("All changes saved"); ?></div>
+        <div id='mass-action-saving-error' class='hide' style='display: inline-block;'><span class='fa fa-exclamation'></span>&nbsp;<?php eT("Could not save data:"); ?>&nbsp;<span id='mass-action-error-message'></span></div>
+
+        <p></p> <!-- Some margin -->
+
+        <input id='mass-action-search-field' name='mass-action-search-field' class='form-control width-20' value='' type='text' placeholder="<?php eT("Search"); ?>" />
+
+        <p></p> <!-- Some margin -->
+
         <div id="handsontable">
         </div>
+
         <?php echo CHtml::hiddenField('YII_CSRF_TOKEN',Yii::app()->request->csrfToken); ?>
+
     </div>
 </div>
 

@@ -70,6 +70,7 @@ function afterChange(change, action, data, saveLink)
  */
 function loadQuestions() {
     $('#handsontable').html('');
+
     $.ajax({
         method: 'GET',
         url: LS.plugin.massAction.getQuestionsLink,
@@ -89,11 +90,19 @@ function loadQuestions() {
             colWidths: data.colWidths,
             columns: data.columns,
             manualColumnResize: true,
+            search: true,
             afterChange: function(change, action) {
                 afterChange(change, action, data, LS.plugin.massAction.saveQuestionChangeLink);
             }
         });
 
+        // Search
+        var searchField = document.getElementById('mass-action-search-field');
+        Handsontable.Dom.addEvent(searchField, 'keyup', function (event) {
+            var queryResult = hot.search.query(this.value);
+            console.log(queryResult);
+            hot.render();
+        });
     });
 }
 
@@ -122,9 +131,18 @@ function loadQuestionGroups()
             colWidths: data.colWidths,
             columns: data.columns,
             manualColumnResize: true,
+            search: true,
             afterChange: function(change, action) {
                 afterChange(change, action, data, LS.plugin.massAction.saveQuestionGroupChangeLink);
             }
+        });
+
+        // Search
+        var searchField = document.getElementById('mass-action-search-field');
+        Handsontable.Dom.addEvent(searchField, 'keyup', function (event) {
+            var queryResult = hot.search.query(this.value);
+            console.log(queryResult);
+            hot.render();
         });
     });
 }
