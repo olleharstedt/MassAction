@@ -95,7 +95,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $data['saveQuestionGroupChangeLink'] = $saveQuestionGroupChangeLink;
 
         Yii::setPathOfAlias('massAction', dirname(__FILE__));
-        $content = Yii::app()->controller->render('massAction.views.index', $data, true);
+        $content = Yii::app()->controller->renderPartial('massAction.views.index', $data, true);
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/bower_components');
         App()->clientScript->registerCssFile("$assetsUrl/handsontable/dist/handsontable.full.css");
