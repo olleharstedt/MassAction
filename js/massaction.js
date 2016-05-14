@@ -1,3 +1,8 @@
+// Namespace
+var LS = LS || {};
+LS.plugin = LS.plugin || {};
+LS.plugin.massAction = LS.plugin.massAction || {};
+
 /**
  * Callback after a cell in handsontable has changed
  *
@@ -6,7 +11,7 @@
  * @param {object} data
  * @param {string} saveLink - Link to send POST data
  */
-function afterChange(change, action, data, saveLink)
+LS.plugin.massAction.afterChange = function(change, action, data, saveLink)
 {
     if (change === null)
     {
@@ -68,7 +73,7 @@ function afterChange(change, action, data, saveLink)
 /**
  * Load questions into handsontable
  */
-function loadQuestions() {
+LS.plugin.massAction.loadQuestions = function() {
     $('#handsontable').html('');
 
     $.ajax({
@@ -92,7 +97,7 @@ function loadQuestions() {
             manualColumnResize: true,
             search: true,
             afterChange: function(change, action) {
-                afterChange(change, action, data, LS.plugin.massAction.saveQuestionChangeLink);
+                LS.plugin.massAction.afterChange(change, action, data, LS.plugin.massAction.saveQuestionChangeLink);
             }
         });
 
@@ -109,7 +114,7 @@ function loadQuestions() {
 /**
  * Load question groups into handsontable
  */
-function loadQuestionGroups()
+LS.plugin.massAction.loadQuestionGroups = function()
 {
     $('#handsontable').html('');
     $.ajax({
@@ -133,7 +138,7 @@ function loadQuestionGroups()
             manualColumnResize: true,
             search: true,
             afterChange: function(change, action) {
-                afterChange(change, action, data, LS.plugin.massAction.saveQuestionGroupChangeLink);
+                LS.plugin.massAction.afterChange(change, action, data, LS.plugin.massAction.saveQuestionGroupChangeLink);
             }
         });
 
@@ -145,4 +150,11 @@ function loadQuestionGroups()
             hot.render();
         });
     });
+}
+
+/**
+ * Replace content found in cells from last search
+ */
+LS.plugin.massAction.massActionReplace = function()
+{
 }
