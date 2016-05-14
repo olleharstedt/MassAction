@@ -74,11 +74,18 @@ function loadQuestions() {
 
         var data = JSON.parse(data);
 
+        var height = $('.side-body').height();
+        var width = $('.side-body').width();
+
         var hot = new Handsontable(LS.plugin.massAction.container, {
+            width: width - 100,
+            height: height - 100,
             data: data.data,
             rowHeaders: true,
             colHeaders: data.colHeaders,
+            colWidths: data.colWidths,
             columns: data.columns,
+            manualColumnResize: true,
             afterChange: function(change, action) {
                 afterChange(change, action, data, LS.plugin.massAction.saveQuestionChangeLink);
             }
@@ -100,11 +107,18 @@ function loadQuestionGroups()
 
         var data = JSON.parse(data);
 
+        var height = $('.side-body').height();
+        var width = $('.side-body').width();
+
         var hot = new Handsontable(LS.plugin.massAction.container, {
+            width: width - 100,
+            height: height - 100,
             data: data.data,
             rowHeaders: true,
             colHeaders: data.colHeaders,
+            colWidths: data.colWidths,
             columns: data.columns,
+            manualColumnResize: true,
             afterChange: function(change, action) {
                 afterChange(change, action, data, LS.plugin.massAction.saveQuestionGroupChangeLink);
             }

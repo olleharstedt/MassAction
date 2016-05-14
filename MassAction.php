@@ -142,7 +142,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         );
         $db = Yii::app()->db;
         $userId = Yii::app()->user->getId();
-        $orderings = ExtraQuickMenuItems::getOrder($userId);
+        $orderings = QuickMenu::getOrder($userId);
         if (isset($orderings['massAction']))
         {
             $button->setOrder($orderings['massAction']);
@@ -258,6 +258,17 @@ class MassAction extends \ls\pluginmanager\PluginBase
             )
         );
 
+        // Limit width
+        $colWidths = array(
+            '100',
+            '100',
+            '300',
+            '300',
+            '0',
+            '100',
+            '100'
+        );
+
         $data = array();
 
         foreach ($questions as $question)
@@ -273,6 +284,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
         return json_encode(array(
             'colHeaders' => $colHeaders,
+            'colWidths' => $colWidths,
             'columns' => $columns,
             'data' => $data
         ));
@@ -331,6 +343,15 @@ class MassAction extends \ls\pluginmanager\PluginBase
             )
         );
 
+        // Limit width
+        $colWidths = array(
+            '100',
+            '100',
+            '300',
+            '100',
+            '100'
+        );
+
         $data = array();
 
         foreach ($questionGroups as $questionGroup)
@@ -346,6 +367,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
         return json_encode(array(
             'colHeaders' => $colHeaders,
+            'colWidths' => $colWidths,
             'columns' => $columns,
             'data' => $data
         ));
