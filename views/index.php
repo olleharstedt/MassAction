@@ -10,6 +10,7 @@
         </p>
         <div id="handsontable">
         </div>
+        <?php echo CHtml::hiddenField('YII_CSRF_TOKEN',Yii::app()->request->csrfToken); ?>
     </div>
 </div>
 

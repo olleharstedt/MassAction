@@ -27,13 +27,16 @@ function afterChange(change, action, data, saveLink)
         throw "Internal error: found no row with number " + rowNumber;
     }
 
+    var csrfToken = $('input[name="YII_CSRF_TOKEN"]').val();
+
     $.ajax({
         method: 'POST',
         url: saveLink,
         data: {
             row: row,
             change: change,
-            surveyId: LS.plugin.massAction.surveyId
+            surveyId: LS.plugin.massAction.surveyId,
+            YII_CSRF_TOKEN: csrfToken
         }
     }).done(function(response) {
         $('#mass-action-saving').addClass('hide');

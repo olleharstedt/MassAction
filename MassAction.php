@@ -102,7 +102,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         App()->clientScript->registerScriptFile("$assetsUrl/handsontable/dist/handsontable.full.js", CClientScript::POS_END); 
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/css');
-        App()->clientScript->registerCssFile("$assetsUrl/mass-action.css");
+        App()->clientScript->registerCssFile("$assetsUrl/massaction.css");
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/js');
         App()->clientScript->registerScriptFile("$assetsUrl/massaction.js");
@@ -419,14 +419,9 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $event = $this->event;
         if ($event->get('target') == "MassAction")
         {
-            // you can get other params from the request object
             $request = $event->get('request');
-
-            //get the function name to call and use the method call_user_func
             $functionToCall = $event->get('function'); 
-            //$content = call_user_func(array($this,$functionToCall), $surveyId);
-            //set the content on the event
-            //$event->setContent($this, $content);
+            // TODO: Hardcode functions
             echo $this->$functionToCall($request);
         }
     }
