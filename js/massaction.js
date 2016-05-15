@@ -3,6 +3,23 @@ var LS = LS || {};
 LS.plugin = LS.plugin || {};
 LS.plugin.massAction = LS.plugin.massAction || {};
 
+$(document).ready(function() {
+    // Make search case sensitive
+    Handsontable.Search.global.setDefaultQueryMethod(function(query, value) {
+        if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0)
+        {
+            return false;
+        }
+
+        if (value === null || value === undefined)
+        {
+            return false;
+        }
+
+        return value.toString().indexOf(query) !== -1;
+    });
+});
+
 LS.plugin.massAction.init = function()
 {
     $('#handsontable').html('');
