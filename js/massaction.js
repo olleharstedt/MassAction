@@ -3,6 +3,14 @@ var LS = LS || {};
 LS.plugin = LS.plugin || {};
 LS.plugin.massAction = LS.plugin.massAction || {};
 
+LS.plugin.massAction.init = function()
+{
+    $('#handsontable').html('');
+    $('#handsontable').html('');
+    $('#mass-action-search-field').val('');
+    LS.plugin.massAction.latestSearch = null;
+}
+
 /**
  * Callback after a cell in handsontable has changed
  *
@@ -73,8 +81,10 @@ LS.plugin.massAction.afterChange = function(change, action, data, saveLink)
 /**
  * Load questions into handsontable
  */
-LS.plugin.massAction.loadQuestions = function() {
-    $('#handsontable').html('');
+LS.plugin.massAction.loadQuestions = function()
+{
+
+    LS.plugin.massAction.init();
 
     $.ajax({
         method: 'GET',
@@ -101,12 +111,47 @@ LS.plugin.massAction.loadQuestions = function() {
             }
         });
 
+        var latestSearch = null;
+
         // Search
         var searchField = document.getElementById('mass-action-search-field');
         Handsontable.Dom.addEvent(searchField, 'keyup', function (event) {
             var queryResult = hot.search.query(this.value);
-            console.log(queryResult);
+            latestSearch = queryResult;
             hot.render();
+        });
+
+        // Replace
+        $('#mass-action-replace-button').on('click', function() {
+
+            // Abort if there's no latest search
+            if (latestSearch === null)
+            {
+                return;
+            }
+
+            var replaceString = $('#mass-action-replace-field').val();
+
+            // Abort if there's nothing to replace with
+            if (replaceString == '')
+            {
+                return;
+            }
+
+            var searchString = $('#mass-action-search-field').val();
+
+            if (searchString == '')
+            {
+                return;
+            }
+
+            $(latestSearch).each(function(i, cell) {
+                var regexp = new RegExp(searchString, 'g');
+                var cellData  = hot.getDataAtCell(cell.row, cell.col);
+                var newCellData = cellData.replace(regexp, replaceString);
+                hot.setDataAtCell(cell.row, cell.col, newCellData);
+            });
+
         });
     });
 }
@@ -116,7 +161,9 @@ LS.plugin.massAction.loadQuestions = function() {
  */
 LS.plugin.massAction.loadQuestionGroups = function()
 {
-    $('#handsontable').html('');
+
+    LS.plugin.massAction.init();
+
     $.ajax({
         method: 'GET',
         url: LS.plugin.massAction.getQuestionGroupsLink,
@@ -142,19 +189,47 @@ LS.plugin.massAction.loadQuestionGroups = function()
             }
         });
 
+        var latestSearch = null;
+
         // Search
         var searchField = document.getElementById('mass-action-search-field');
         Handsontable.Dom.addEvent(searchField, 'keyup', function (event) {
             var queryResult = hot.search.query(this.value);
-            console.log(queryResult);
+            latestSearch = queryResult;
             hot.render();
         });
-    });
-}
 
-/**
- * Replace content found in cells from last search
- */
-LS.plugin.massAction.massActionReplace = function()
-{
+        // Replace
+        $('#mass-action-replace-button').on('click', function() {
+
+            // Abort if there's no latest search
+            if (latestSearch === null)
+            {
+                return;
+            }
+
+            var replaceString = $('#mass-action-replace-field').val();
+
+            // Abort if there's nothing to replace with
+            if (replaceString == '')
+            {
+                return;
+            }
+
+            var searchString = $('#mass-action-search-field').val();
+
+            if (searchString == '')
+            {
+                return;
+            }
+
+            $(latestSearch).each(function(i, cell) {
+                var regexp = new RegExp(searchString, 'g');
+                var cellData  = hot.getDataAtCell(cell.row, cell.col);
+                var newCellData = cellData.replace(regexp, replaceString);
+                hot.setDataAtCell(cell.row, cell.col, newCellData);
+            });
+
+        });
+    });
 }

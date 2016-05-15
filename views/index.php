@@ -16,7 +16,7 @@
 
         <input id='mass-action-search-field' name='mass-action-search-field' class='form-control width-20' value='' type='text' placeholder="<?php eT("Search"); ?>" />
         <input id='mass-action-replace-field' name='mass-action-replace-field' class='form-control width-20' value='' type='text' placeholder="<?php eT("Replace"); ?>" />
-        <button id='mass-action-replace-button' name='mass-action-replace-button' class='btn btn-default' onclick='LS.plugin.massAction.massActionReplace();'><?php eT("Replace"); ?></button>
+        <button id='mass-action-replace-button' name='mass-action-replace-button' class='btn btn-default'><?php eT("Replace all"); ?></button>
 
         <p></p> <!-- Some margin -->
 
