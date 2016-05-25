@@ -115,6 +115,14 @@ class MassAction extends \ls\pluginmanager\PluginBase
      */
     public function afterQuickMenuLoad()
     {
+        // Do nothing if QuickMenu plugin is not active
+        $quickMenuExistsAndIsActive = $this->api->pluginExists('QuickMenu')
+            && $this->api->pluginIsActive('QuickMenu');
+        if (!$quickMenuExistsAndIsActive)
+        {
+            return;
+        }
+
         $event = $this->getEvent();
         $settings = $this->getPluginSettings(true);
 
@@ -133,13 +141,12 @@ class MassAction extends \ls\pluginmanager\PluginBase
         );
 
         $button = new QuickMenuButton(array(
-                'name' => 'massAction',
-                'href' => $href,
-                'tooltip' => gT('Mass action'),
-                'iconClass' => 'fa fa-table navbar-brand',
-                'neededPermission' => array('surveycontent', 'update')
-            )
-        );
+            'name' => 'massAction',
+            'href' => $href,
+            'tooltip' => gT('Mass action'),
+            'iconClass' => 'fa fa-table navbar-brand',
+            'neededPermission' => array('surveycontent', 'update')
+        ));
         $db = Yii::app()->db;
         $userId = Yii::app()->user->getId();
         $orderings = QuickMenu::getOrder($userId);
@@ -148,7 +155,6 @@ class MassAction extends \ls\pluginmanager\PluginBase
             $button->setOrder($orderings['massAction']);
         }
         
-
         $event->append('quickMenuItems', array($button));
     }
 
