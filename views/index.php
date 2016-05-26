@@ -6,6 +6,7 @@
         <!-- Load buttons -->
         <div class='btn btn-default' onclick='LS.plugin.massAction.loadQuestions();'><?php echo gT("Load questions"); ?></div>
         <div class='btn btn-default' onclick='LS.plugin.massAction.loadQuestionGroups();'><?php echo gT("Load question groups"); ?></div>
+        <div class='btn btn-default' onclick='LS.plugin.massAction.loadTokens();'><?php echo gT("Load tokens"); ?></div>
 
         <!-- Save spinner -->
         <div id='mass-action-saving' class='hide' style='display: inline-block;'><span class='fa fa-spinner fa-spin'></span>&nbsp;<?php eT("Saving data..."); ?></div>
@@ -38,8 +39,10 @@ LS.plugin.massAction = LS.plugin.massAction || {};
 LS.plugin.massAction.container = document.getElementById('handsontable');
 LS.plugin.massAction.getQuestionsLink = '<?php echo $getQuestionsLink; ?>';
 LS.plugin.massAction.getQuestionGroupsLink = '<?php echo $getQuestionGroupsLink; ?>';
+LS.plugin.massAction.getTokensLink = '<?php echo $getTokensLink; ?>';
 LS.plugin.massAction.saveQuestionChangeLink = '<?php echo $saveQuestionChangeLink; ?>';
 LS.plugin.massAction.saveQuestionGroupChangeLink = '<?php echo $saveQuestionGroupChangeLink; ?>';
+LS.plugin.massAction.saveTokenChangeLink = '<?php echo $saveTokenChangeLink; ?>';
 LS.plugin.massAction.surveyId = '<?php echo $surveyId; ?>';
 
 $(document).ready(function() {

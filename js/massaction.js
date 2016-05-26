@@ -96,16 +96,21 @@ LS.plugin.massAction.afterChange = function(change, action, data, saveLink)
 }
 
 /**
- * Load questions into handsontable
+ * Helper function to load questions, groups, ...
+ *
+ * @param {object} link
+ * @return void
  */
-LS.plugin.massAction.loadQuestions = function()
+LS.plugin.massAction.load = function(links)
 {
+    var getLink = links.getLink;
+    var saveLink = links.saveLink;
 
     LS.plugin.massAction.init();
 
     $.ajax({
         method: 'GET',
-        url: LS.plugin.massAction.getQuestionsLink,
+        url: getLink
     }).done(function(data) {
 
         var data = JSON.parse(data);
@@ -115,7 +120,7 @@ LS.plugin.massAction.loadQuestions = function()
 
         var hot = new Handsontable(LS.plugin.massAction.container, {
             width: width - 100,
-            height: height - 100,
+            height: height - 200,
             data: data.data,
             rowHeaders: true,
             colHeaders: data.colHeaders,
@@ -124,7 +129,7 @@ LS.plugin.massAction.loadQuestions = function()
             manualColumnResize: true,
             search: true,
             afterChange: function(change, action) {
-                LS.plugin.massAction.afterChange(change, action, data, LS.plugin.massAction.saveQuestionChangeLink);
+                LS.plugin.massAction.afterChange(change, action, data, saveLink);
             }
         });
 
@@ -174,79 +179,37 @@ LS.plugin.massAction.loadQuestions = function()
 }
 
 /**
+ * Load questions into handsontable
+ */
+LS.plugin.massAction.loadQuestions = function()
+{
+    var links = {
+        getLink: LS.plugin.massAction.getQuestionsLink,
+        saveLink: LS.plugin.massAction.saveQuestionChangeLink
+    };
+    LS.plugin.massAction.load(links);
+}
+
+/**
  * Load question groups into handsontable
  */
 LS.plugin.massAction.loadQuestionGroups = function()
 {
+    var links = {
+        getLink: LS.plugin.massAction.getQuestionGroupsLink,
+        saveLink: LS.plugin.massAction.saveQuestionGroupChangeLink
+    };
+    LS.plugin.massAction.load(links);
+}
 
-    LS.plugin.massAction.init();
-
-    $.ajax({
-        method: 'GET',
-        url: LS.plugin.massAction.getQuestionGroupsLink,
-    }).done(function(data) {
-
-        var data = JSON.parse(data);
-
-        var height = $('.side-body').height();
-        var width = $('.side-body').width();
-
-        var hot = new Handsontable(LS.plugin.massAction.container, {
-            width: width - 100,
-            height: height - 100,
-            data: data.data,
-            rowHeaders: true,
-            colHeaders: data.colHeaders,
-            colWidths: data.colWidths,
-            columns: data.columns,
-            manualColumnResize: true,
-            search: true,
-            afterChange: function(change, action) {
-                LS.plugin.massAction.afterChange(change, action, data, LS.plugin.massAction.saveQuestionGroupChangeLink);
-            }
-        });
-
-        var latestSearch = null;
-
-        // Search
-        var searchField = document.getElementById('mass-action-search-field');
-        Handsontable.Dom.addEvent(searchField, 'keyup', function (event) {
-            var queryResult = hot.search.query(this.value);
-            latestSearch = queryResult;
-            hot.render();
-        });
-
-        // Replace
-        $('#mass-action-replace-button').on('click', function() {
-
-            // Abort if there's no latest search
-            if (latestSearch === null)
-            {
-                return;
-            }
-
-            var replaceString = $('#mass-action-replace-field').val();
-
-            // Abort if there's nothing to replace with
-            if (replaceString == '')
-            {
-                return;
-            }
-
-            var searchString = $('#mass-action-search-field').val();
-
-            if (searchString == '')
-            {
-                return;
-            }
-
-            $(latestSearch).each(function(i, cell) {
-                var regexp = new RegExp(searchString, 'g');
-                var cellData  = hot.getDataAtCell(cell.row, cell.col);
-                var newCellData = cellData.replace(regexp, replaceString);
-                hot.setDataAtCell(cell.row, cell.col, newCellData);
-            });
-
-        });
-    });
+/**
+ * Load tokens into handsontable
+ */
+LS.plugin.massAction.loadTokens = function()
+{
+    var links = {
+        getLink: LS.plugin.massAction.getTokensLink,
+        saveLink: LS.plugin.massAction.saveTokenChangeLink
+    };
+    LS.plugin.massAction.load(links);
 }

@@ -87,12 +87,32 @@ class MassAction extends \ls\pluginmanager\PluginBase
             )
         );
 
+        $getTokensLink = Yii::app()->createUrl(
+            'plugins/direct',
+            array(
+                'plugin' => 'MassAction',
+                'function' => 'getTokens',
+                'surveyId' => $surveyId
+            )
+        );
+
+        $saveTokenChangeLink = Yii::app()->createUrl(
+            'plugins/direct',
+            array(
+                'plugin' => 'MassAction',
+                'function' => 'saveTokenChange',
+                'surveyId' => $surveyId
+            )
+        );
+
         $data = array();
         $data['surveyId'] = $surveyId;
         $data['getQuestionsLink'] = $getQuestionsLink;
         $data['getQuestionGroupsLink'] = $getQuestionGroupsLink;
+        $data['getTokensLink'] = $getTokensLink;
         $data['saveQuestionChangeLink'] = $saveQuestionChangeLink;
         $data['saveQuestionGroupChangeLink'] = $saveQuestionGroupChangeLink;
+        $data['saveTokenChangeLink'] = $saveTokenChangeLink;
 
         Yii::setPathOfAlias('massAction', dirname(__FILE__));
         $content = Yii::app()->controller->renderPartial('massAction.views.index', $data, true);
@@ -406,6 +426,193 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
             $questionGroup->$changedFieldName = $newValue;
             $questionGroup->save();
+
+            // All well!
+            return json_encode(array('result' => 'success'));
+        }
+        catch (Exception $ex)
+        {
+            // Any error is sent as JSON to client
+            return json_encode(array(
+                'result' => 'error',
+                'message' => $ex->getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Get tokens
+     *
+     * @param LSHttpRequest $request
+     * @return string JSON
+     */
+    public function getTokens(LSHttpRequest $request)
+    {
+        $surveyId = $request->getParam('surveyId');
+
+        // Check to see if a token table exists for this survey
+        $tokenExists = tableExists('{{tokens_' . $surveyId . '}}');
+        if (!$tokenExists)
+        {
+            return "";
+        }
+
+        $tokens = TokenDynamic::model($surveyId)->findAll();
+
+        return $this->tokensToJSON($tokens);
+    }
+
+    /**
+     * Turn tokens from db into JSON for handsontable
+     *
+     * @param array $tokens
+     * @return string JSON
+     */
+    public function tokensToJSON($tokens)
+    {
+        // Header
+        $colHeaders = array(
+            gT('TID'),
+            gT('Participant ID'),
+            gT('First name'),
+            gT('Last name'),
+            gT('E-mail'),
+            gT('E-mail status'),
+            gT('Token'),
+            gT('Language'),
+            gT('Blacklisted'),
+            gT('Sent'),
+            gT('Reminder sent'),
+            gT('Reminder count'),
+            gT('Completed'),
+            gT('Uses left'),
+            gT('Valid from'),
+            gT('Valid until'),
+            gT('MPID')
+            // TODO: Attributes here
+        );
+
+        // handsontable needs this information for
+        // readonly option
+        $columns = array(
+            // TODO: hidden?
+            array(
+                'data' => 'tid',
+                'readOnly' => true
+            ),
+            array(
+                'data' => 'participant_id',
+            ),
+            array(
+                'data' => 'firstname',
+            ),
+            array(
+                'data' => 'lastname',
+            ),
+            array(
+                'data' => 'email',
+            ),
+            array(
+                'data' => 'emailstatus',
+            ),
+            array(
+                'data' => 'token',
+            ),
+            array(
+                'data' => 'language',
+            ),
+            array(
+                'data' => 'blacklisted',
+            ),
+            array(
+                'data' => 'sent',
+            ),
+            array(
+                'data' => 'remindersent',
+            ),
+            array(
+                'data' => 'remindercount',
+            ),
+            array(
+                'data' => 'completed',
+            ),
+            array(
+                'data' => 'usesleft',
+            ),
+            array(
+                'data' => 'validfrom',
+            ),
+            array(
+                'data' => 'validuntil',
+            ),
+            array(
+                'data' => 'mpid',
+            )
+        );
+
+        $data = array();
+
+        foreach ($tokens as $token)
+        {
+            $tokenArr = array();
+            foreach ($columns as $column)
+            {
+                $field = $column['data'];
+                $tokenArr[$field] = $token->$field;
+            }
+            $data[] = $tokenArr;
+        }
+
+        // Limit width
+        $colWidths = array(
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100',
+            '100'
+        );
+
+        return json_encode(array(
+            'colHeaders' => $colHeaders,
+            'colWidths' => $colWidths,
+            'columns' => $columns,
+            'data' => $data
+        ));
+
+    }
+
+    /**
+     * Save token cell change
+     */
+    public function saveTokenChange(LSHttpRequest $request)
+    {
+        try
+        {
+            $surveyId = $request->getParam('surveyId');
+            $row = $request->getParam('row');
+            $change = $request->getParam('change');
+
+            $token = TokenDynamic::model($surveyId)->findByPk(array(
+                'tid' => $row['tid'],
+            ));
+
+            $changedFieldName = $change[1];
+            $newValue = $change[3];
+
+            $token->$changedFieldName = $newValue;
+            $token->save();
 
             // All well!
             return json_encode(array('result' => 'success'));
