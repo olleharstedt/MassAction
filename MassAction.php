@@ -156,6 +156,12 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/js');
         App()->clientScript->registerScriptFile("$assetsUrl/massaction.js");
 
+        // Include extra JavaScript for 2.06lts
+        if ($this->lsVersion == '2.06lts')
+        {
+            App()->clientScript->registerScriptFile("$assetsUrl/massaction206.js");
+        }
+
         return $content;
     }
 
