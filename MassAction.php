@@ -35,7 +35,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         else if ($this->lsVersion == '2.06lts' || $this->lsVersion == '2.06')
         {
             $this->subscribe('newDirectRequest');
-            $this->subscribe('afterAdminMenuLoad');
+            $this->subscribe('afterSurveyMenuLoad');
         }
         else
         {
@@ -73,6 +73,13 @@ class MassAction extends \ls\pluginmanager\PluginBase
      */
     public function actionIndex($surveyId)
     {
+
+        // In 2.06, we get survey ID from URL param
+        if ($surveyId instanceof LSHttpRequest)
+        {
+            $surveyId = Yii::app()->request->getParam('surveyId');
+        }
+
         $getQuestionsLink = Yii::app()->createUrl(
             'plugins/direct',
             array(
@@ -652,19 +659,52 @@ class MassAction extends \ls\pluginmanager\PluginBase
     /**
      * Specific for 2.06
      */
-    public function afterAdminMenuLoad()
+    public function afterSurveyMenuLoad()
     {
+        $event = $this->event;
+        $menu = $event->get('menu', array());
+        $surveyId = $event->get('surveyId'); 
+        $href = Yii::app()->createUrl(
+            'plugins/direct',
+            array(
+                'plugin' => 'MassAction',
+                'function' => 'actionIndex',
+                'surveyId' => $surveyId
+            )
+        );
+
+        $menu[] = array(
+            //'href' => "plugins/direct/MassAction?function=actionIndex",
+            'href' => $href,
+            'alt' => gT('Mass action'),
+            'image' => 'bounce.png'
+        );
+
+        $event->set('menu', $menu);
     }
 
     public function newDirectRequest()
     {
+        if (empty($this->lsVersion))
+        {
+            throw new Exception("Internal error: this->lsVersion is not set");
+        }
+
         $event = $this->event;
         if ($event->get('target') == "MassAction")
         {
             $request = $event->get('request');
             $functionToCall = $event->get('function'); 
             // TODO: Hardcode functions
-            echo $this->$functionToCall($request);
+            if ($this->lsVersion == '2.5')
+            {
+                echo $this->$functionToCall($request);
+            }
+            else if ($this->lsVersion == '2.06lts' || $this->lsVersion == '2.06')
+            {
+                $content = $this->$functionToCall($request);
+                $event->setContent($this, $content);
+            }
         }
     }
 
