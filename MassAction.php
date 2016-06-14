@@ -15,11 +15,33 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
     protected $storage = 'DbStorage';
 
+    /**
+     * Which version of LS we're using (2.5 or 2.06lts)
+     * @var string
+     */
+    protected $lsVersion = '2.5';  // Default to 2.5
+
     public function init()
     {
-        $this->subscribe('beforeToolsMenuRender');
-        $this->subscribe('newDirectRequest');
-        $this->subscribe('afterQuickMenuLoad');
+        $config = require(Yii::app()->basePath . '/config/version.php');
+        $this->lsVersion = $config['versionnumber'];
+
+        if ($this->lsVersion == '2.5')
+        {
+            $this->subscribe('beforeToolsMenuRender');
+            $this->subscribe('newDirectRequest');
+            $this->subscribe('afterQuickMenuLoad');
+        }
+        else if ($this->lsVersion == '2.06lts' || $this->lsVersion == '2.06')
+        {
+            $this->subscribe('newDirectRequest');
+            $this->subscribe('afterAdminMenuLoad');
+        }
+        else
+        {
+            throw new Exception("Unsupported version: " . $this->lsVersion);
+        }
+
     }
 
     public function beforeToolsMenuRender()
@@ -625,6 +647,13 @@ class MassAction extends \ls\pluginmanager\PluginBase
                 'message' => $ex->getMessage()
             ));
         }
+    }
+
+    /**
+     * Specific for 2.06
+     */
+    public function afterAdminMenuLoad()
+    {
     }
 
     public function newDirectRequest()
