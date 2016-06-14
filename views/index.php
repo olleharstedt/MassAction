@@ -45,12 +45,4 @@ LS.plugin.massAction.saveQuestionGroupChangeLink = '<?php echo $saveQuestionGrou
 LS.plugin.massAction.saveTokenChangeLink = '<?php echo $saveTokenChangeLink; ?>';
 LS.plugin.massAction.surveyId = '<?php echo $surveyId; ?>';
 
-$(document).ready(function() {
-    var data = [
-        ["", "Ford", "Volvo", "Toyota", "Honda"],
-        ["2016", 10, 11, 12, 13],
-        ["2017", 20, 11, 14, 13],
-        ["2018", 30, 15, 12, 13]
-    ];
-});
 </script>
