@@ -696,7 +696,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
             $request = $event->get('request');
             $functionToCall = $event->get('function'); 
             // TODO: Hardcode functions
-            if ($this->lsVersion == '2.5')
+            if ($this->lsVersion == '2.5' || $functionToCall != "actionIndex")
             {
                 echo $this->$functionToCall($request);
             }
