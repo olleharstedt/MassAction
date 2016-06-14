@@ -157,7 +157,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         App()->clientScript->registerScriptFile("$assetsUrl/massaction.js");
 
         // Include extra JavaScript for 2.06lts
-        if ($this->lsVersion == '2.06lts')
+        if ($this->lsVersion == '2.06lts' || $this->lsVersion == '2.06')
         {
             App()->clientScript->registerScriptFile("$assetsUrl/massaction206.js");
         }

@@ -10,4 +10,5 @@
 
 $(document).ready(function() {
     $('#handsontable').height('100%');
+    $('#content').css('margin-left', '50px');
 });
