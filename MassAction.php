@@ -25,8 +25,9 @@ class MassAction extends \ls\pluginmanager\PluginBase
     {
         $config = require(Yii::app()->basePath . '/config/version.php');
         $this->lsVersion = $config['versionnumber'];
+
         // Add build number ?
-        if (floatval($this->lsVersion) >= '2.5')
+        if (floatval($this->lsVersion) >= 2.5)
         {
             $this->subscribe('beforeToolsMenuRender');
             $this->subscribe('newDirectRequest');
@@ -41,10 +42,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
         {
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterSurveyMenuLoad');
-            $this->subscribe('beforeActivate'); // To show a warning message when activate
-            $this->subscribe('beforeSurveySettings'); // We are unsure afterSurveyMenuLoad event , then add a link to the plugin settings
-
-            //throw new Exception("Unsupported version: " . $this->lsVersion);
+            $this->subscribe('beforeActivate');  // To show a warning message when activate
+            $this->subscribe('beforeSurveySettings');  // We are unsure afterSurveyMenuLoad event , then add a link to the plugin settings
         }
 
     }
@@ -59,7 +58,14 @@ class MassAction extends \ls\pluginmanager\PluginBase
             'settings' => array(
                 'linkMassAction'=>array(
                     'type'=>'link',
-                    'link'=>$this->api->createUrl('plugins/direct', array('plugin' => get_class($this),'surveyId'=>$this->event->get('survey'), 'function' => 'actionIndex')),
+                    'link'=>$this->api->createUrl(
+                        'plugins/direct',
+                        array(
+                            'plugin' => get_class($this),
+                            'surveyId' => $this->event->get('survey'),
+                            'function' => 'actionIndex'
+                        )
+                    ),
                     'label'=>'Do some mass action on this survey',
                 ),
             ),
@@ -723,7 +729,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
             $request = $event->get('request');
             $functionToCall = $event->get('function');
             // TODO: Hardcode functions
-            if (floatval($this->lsVersion) >= '2.5' || $functionToCall != "actionIndex")
+            if (floatval($this->lsVersion) >= 2.5 || $functionToCall != "actionIndex")
             {
                 echo $this->$functionToCall($request);
             }
