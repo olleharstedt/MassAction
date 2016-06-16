@@ -246,6 +246,16 @@ class MassAction extends \ls\pluginmanager\PluginBase
      */
     public function saveQuestionChange(LSHttpRequest $request)
     {
+        // Check update permission
+        $surveyId = $request->getParam('surveyId');
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'update'))
+        {
+            return json_encode(array(
+                'result' => 'error',
+                'message' => "You don't have access to update survey content"
+            ));
+        }
+
         try
         {
             $surveyId = $request->getParam('surveyId');
@@ -299,6 +309,16 @@ class MassAction extends \ls\pluginmanager\PluginBase
     public function getQuestions(LSHttpRequest $request)
     {
         $surveyId = $request->getParam('surveyId');
+
+        // Check read permission
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read'))
+        {
+            return json_encode(array(
+                'result' => 'error',
+                'message' => "You don't have access to read survey content"
+            ));
+        }
+
         $baselang = Survey::model()->findByPk($surveyId)->language;
         $questions = Question::model()->findAllByAttributes(array(
             'sid' => $surveyId,
@@ -396,6 +416,16 @@ class MassAction extends \ls\pluginmanager\PluginBase
     public function getQuestionGroups(LSHttpRequest $request)
     {
         $surveyId = $request->getParam('surveyId');
+
+        // Check read permission
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read'))
+        {
+            return json_encode(array(
+                'result' => 'error',
+                'message' => "You don't have access to read survey content"
+            ));
+        }
+
         $baselang = Survey::model()->findByPk($surveyId)->language;
         $questionGroups = QuestionGroup::model()->findAllByAttributes(array(
             'sid' => $surveyId,
@@ -408,7 +438,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
     /**
      * @return json string
      */
-    public function questionGroupsToJSON($questionGroups)
+    protected function questionGroupsToJSON($questionGroups)
     {
         // Header
         $colHeaders = array(
@@ -481,6 +511,16 @@ class MassAction extends \ls\pluginmanager\PluginBase
      */
     public function saveQuestionGroupChange(LSHttpRequest $request)
     {
+        // Check update permission
+        $surveyId = $request->getParam('surveyId');
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'update'))
+        {
+            return json_encode(array(
+                'result' => 'error',
+                'message' => "You don't have access to update survey content"
+            ));
+        }
+
         try
         {
             $surveyId = $request->getParam('surveyId');
@@ -522,11 +562,23 @@ class MassAction extends \ls\pluginmanager\PluginBase
     {
         $surveyId = $request->getParam('surveyId');
 
+        // Check read permission
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'token', 'read'))
+        {
+            return json_encode(array(
+                'result' => 'error',
+                'message' => "You don't have access to read tokens"
+            ));
+        }
+
         // Check to see if a token table exists for this survey
         $tokenExists = tableExists('{{tokens_' . $surveyId . '}}');
         if (!$tokenExists)
         {
-            return "";
+            return json_encode(array(
+                'result' => 'error',
+                'message' => "Found no token table"
+            ));
         }
 
         $tokens = TokenDynamic::model($surveyId)->findAll();
@@ -540,7 +592,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
      * @param array $tokens
      * @return string JSON
      */
-    public function tokensToJSON($tokens)
+    protected function tokensToJSON($tokens)
     {
         // Header
         $colHeaders = array(
@@ -670,9 +722,19 @@ class MassAction extends \ls\pluginmanager\PluginBase
      */
     public function saveTokenChange(LSHttpRequest $request)
     {
+        $surveyId = $request->getParam('surveyId');
+
+        // Check update permission
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'token', 'update'))
+        {
+            return json_encode(array(
+                'result' => 'error',
+                'message' => "You don't have access to update tokens"
+            ));
+        }
+
         try
         {
-            $surveyId = $request->getParam('surveyId');
             $row = $request->getParam('row');
             $change = $request->getParam('change');
 

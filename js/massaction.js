@@ -114,6 +114,18 @@ $(document).ready(function() {
 
             var data = JSON.parse(data);
 
+            if (data.result == 'error')
+            {
+                $('#mass-action-error-message').html(data.message);
+                $('#mass-action-saving-error').removeClass('hide');
+                $('#mass-action-saving-error').show();
+                clearTimeout(LS.plugin.massAction.t);
+                LS.plugin.massAction.t = setTimeout(function() {
+                    $('#mass-action-saving-error').fadeOut(500);
+                }, 2000);
+                return;
+            }
+
             var height = $('.side-body').height();
             var width = $('.side-body').width();
 

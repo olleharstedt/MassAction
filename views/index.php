@@ -11,7 +11,7 @@
         <!-- Save spinner -->
         <div id='mass-action-saving' class='hide' style='display: inline-block;'><span class='fa fa-spinner fa-spin'></span>&nbsp;<?php eT("Saving data..."); ?></div>
         <div id='mass-action-saving-done' class='hide' style='display: inline-block;'><span class='fa fa-check'></span>&nbsp;<?php eT("All changes saved"); ?></div>
-        <div id='mass-action-saving-error' class='hide' style='display: inline-block;'><span class='fa fa-exclamation'></span>&nbsp;<?php eT("Could not save data:"); ?>&nbsp;<span id='mass-action-error-message'></span></div>
+        <div id='mass-action-saving-error' class='hide' style='display: inline-block;'><span class='fa fa-exclamation'></span>&nbsp;<span id='mass-action-error-message'></span></div>
 
         <p></p> <!-- Some margin -->
 
