@@ -25,32 +25,53 @@ class MassAction extends \ls\pluginmanager\PluginBase
     {
         $config = require(Yii::app()->basePath . '/config/version.php');
         $this->lsVersion = $config['versionnumber'];
-
-        if ($this->lsVersion == '2.5')
+        // Add build number ?
+        if (floatval($this->lsVersion) >= '2.5')
         {
             $this->subscribe('beforeToolsMenuRender');
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterQuickMenuLoad');
         }
-        else if ($this->lsVersion == '2.06lts' || $this->lsVersion == '2.06')
+        elseif ($this->lsVersion == '2.06lts')
         {
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterSurveyMenuLoad');
         }
         else
         {
-            throw new Exception("Unsupported version: " . $this->lsVersion);
+            $this->subscribe('newDirectRequest');
+            $this->subscribe('afterSurveyMenuLoad');
+            $this->subscribe('beforeActivate'); // To show a warning message when activate
+            $this->subscribe('beforeSurveySettings'); // We are unsure afterSurveyMenuLoad event , then add a link to the plugin settings
+
+            //throw new Exception("Unsupported version: " . $this->lsVersion);
         }
 
     }
-
+    public function beforeActivate()
+    {
+        App()->setFlashMessage(gT("Warning : this plugin was not tested with this LimeSurvey version."),"error");
+    }
+    public function beforeSurveySettings()
+    {
+        $this->event->set("surveysettings.{$this->id}", array(
+            'name' => get_class($this),
+            'settings' => array(
+                'linkMassAction'=>array(
+                    'type'=>'link',
+                    'link'=>$this->api->createUrl('plugins/direct', array('plugin' => get_class($this),'surveyId'=>$this->event->get('survey'), 'function' => 'actionIndex')),
+                    'label'=>'Do some mass action on this survey',
+                ),
+            ),
+        ));
+    }
     public function beforeToolsMenuRender()
     {
         $event = $this->getEvent();
         $surveyId = $event->get('surveyId');
 
         $href = Yii::app()->createUrl(
-            'admin/pluginhelper', 
+            'admin/pluginhelper',
             array(
                 'sa' => 'sidebody',
                 'plugin' => 'MassAction',
@@ -148,7 +169,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/bower_components');
         App()->clientScript->registerCssFile("$assetsUrl/handsontable/dist/handsontable.full.css");
-        App()->clientScript->registerScriptFile("$assetsUrl/handsontable/dist/handsontable.full.js", CClientScript::POS_END); 
+        App()->clientScript->registerScriptFile("$assetsUrl/handsontable/dist/handsontable.full.js", CClientScript::POS_END);
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/css');
         App()->clientScript->registerCssFile("$assetsUrl/massaction.css");
@@ -157,7 +178,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         App()->clientScript->registerScriptFile("$assetsUrl/massaction.js");
 
         // Include extra JavaScript for 2.06lts
-        if ($this->lsVersion == '2.06lts' || $this->lsVersion == '2.06')
+        if (floatval($this->lsVersion) < 2.5)
         {
             App()->clientScript->registerScriptFile("$assetsUrl/massaction206.js");
         }
@@ -186,7 +207,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $surveyId = $data['surveyid'];
 
         $href = Yii::app()->createUrl(
-            'admin/pluginhelper', 
+            'admin/pluginhelper',
             array(
                 'sa' => 'sidebody',
                 'plugin' => 'MassAction',
@@ -209,7 +230,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         {
             $button->setOrder($orderings['massAction']);
         }
-        
+
         $event->append('quickMenuItems', array($button));
     }
 
@@ -669,7 +690,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
     {
         $event = $this->event;
         $menu = $event->get('menu', array());
-        $surveyId = $event->get('surveyId'); 
+        $surveyId = $event->get('surveyId');
         $href = Yii::app()->createUrl(
             'plugins/direct',
             array(
@@ -700,13 +721,13 @@ class MassAction extends \ls\pluginmanager\PluginBase
         if ($event->get('target') == "MassAction")
         {
             $request = $event->get('request');
-            $functionToCall = $event->get('function'); 
+            $functionToCall = $event->get('function');
             // TODO: Hardcode functions
-            if ($this->lsVersion == '2.5' || $functionToCall != "actionIndex")
+            if (floatval($this->lsVersion) >= '2.5' || $functionToCall != "actionIndex")
             {
                 echo $this->$functionToCall($request);
             }
-            else if ($this->lsVersion == '2.06lts' || $this->lsVersion == '2.06')
+            else
             {
                 $content = $this->$functionToCall($request);
                 $event->setContent($this, $content);
