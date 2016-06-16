@@ -262,6 +262,16 @@ class MassAction extends \ls\pluginmanager\PluginBase
             $newValue = $change[3];
 
             $question->$changedFieldName = $newValue;
+
+            // Validate question (e.g. for unique code)
+            if ($question->validate() !== true)
+            {
+                return json_encode(array(
+                    'result' => 'error',
+                    'message' => 'Could not validate question'
+                ));
+            }
+
             $question->save();
 
             // All well!
