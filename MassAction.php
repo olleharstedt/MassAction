@@ -283,6 +283,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
             }
 
             $question->save();
+            $this->saveQuestionForAllLanguages($question, $changedFieldName, $newValue);
 
             // All well!
             return json_encode(array('result' => 'success'));
@@ -301,6 +302,39 @@ class MassAction extends \ls\pluginmanager\PluginBase
             'result' => 'error',
             'message' => 'Impossibru!'
         ));
+    }
+
+    /**
+     * Some question attributes are localized, some are not. Since the database
+     * is not normalized with regard to this, we need to manually update
+     * all language version of the question.
+     *
+     * @param object $question
+     * @param string fieldName - The name of the database field to update
+     * @param mixed value
+     * @return void
+     */
+    protected function saveQuestionForAllLanguages($question, $fieldName, $value)
+    {
+        $localizedFields = array(
+            'question',
+            'help'
+        );
+
+        if (!in_array($fieldName, $localizedFields))
+        {
+            // Save in all languages
+            Yii::app()->db->createCommand()->update(
+                '{{questions}}',
+                array("$fieldName" => $value),
+                'qid = :qid',
+                array(':qid' => $question->qid
+            ));
+        }
+        else
+        {
+            // Localized field, don't save
+        }
     }
 
     /**
