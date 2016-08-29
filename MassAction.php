@@ -483,7 +483,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
             '300',
             '0',
             '100',
-            '100'
+            '100',
+            '300'
         );
 
         $data = array();
