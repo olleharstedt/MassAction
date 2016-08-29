@@ -369,6 +369,36 @@ class MassAction extends \ls\pluginmanager\PluginBase
     }
 
     /**
+     * Same as above.
+     * @param object $questionGroup
+     * @param string fieldName - The name of the database field to update
+     * @param mixed value
+     * @return void
+     */
+    protected function saveQuestionGroupForAllLanguages($questionGroup, $fieldName, $value)
+    {
+        $localizedFields = array(
+            'group_name',
+            'description'
+        );
+
+        if (!in_array($fieldName, $localizedFields))
+        {
+            // Save in all languages
+            Yii::app()->db->createCommand()->update(
+                '{{groups}}',
+                array("$fieldName" => $value),
+                'gid = :gid',
+                array(':gid' => $questionGroup->gid
+            ));
+        }
+        else
+        {
+            // Localized field, don't save
+        }
+    }
+
+    /**
      * @param LSHttpRequest $request
      */
     public function getQuestions(LSHttpRequest $request)
@@ -615,6 +645,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
             $questionGroup->$changedFieldName = $newValue;
             $questionGroup->save();
+            $this->saveQuestionGroupForAllLanguages($questionGroup, $changedFieldName, $newValue);
 
             // All well!
             return json_encode(array('result' => 'success'));
