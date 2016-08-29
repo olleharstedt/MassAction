@@ -434,7 +434,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
     {
         // Header
         $colHeaders = array(
-            gT('QID'),
+            gT('ID'),
+            gT('Group'),
             gT('Code'),
             gT('Question'),
             gT('Help'),
@@ -450,6 +451,10 @@ class MassAction extends \ls\pluginmanager\PluginBase
             // TODO: hidden?
             array(
                 'data' => 'qid',
+                'readOnly' => true
+            ),
+            array(
+                'data' => 'gid',
                 'readOnly' => true
             ),
             array(
@@ -477,6 +482,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
         // Limit width
         $colWidths = array(
+            '100',
             '100',
             '100',
             '300',
