@@ -170,8 +170,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $data['saveQuestionGroupChangeLink'] = $saveQuestionGroupChangeLink;
         $data['saveTokenChangeLink'] = $saveTokenChangeLink;
 
-        Yii::setPathOfAlias('massAction', dirname(__FILE__));
-        $content = Yii::app()->controller->renderPartial('massAction.views.index', $data, true);
+        $content = $this->renderPartial('index', $data, true);
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/bower_components');
         App()->clientScript->registerCssFile("$assetsUrl/handsontable/dist/handsontable.full.css");
@@ -271,7 +270,39 @@ class MassAction extends \ls\pluginmanager\PluginBase
             $changedFieldName = $change[1];
             $newValue = $change[3];
 
-            $question->$changedFieldName = $newValue;
+            $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
+
+            // Question field
+            if (isset($question->$changedFieldName))
+            {
+                $question->$changedFieldName = $newValue;
+            }
+            // Question attribute (lime_question_attributes table)
+            else if (isset($attributes[$changedFieldName]))
+            {
+                $attribute = QuestionAttribute::model()->findByAttributes(array(
+                    'qid' => $question->qid,
+                    'attribute' => $changedFieldName
+                ));
+
+                if (empty($attribute))
+                {
+                    $attribute = new QuestionAttribute();
+                    $attribute->qid = $question->qid;
+                    $attribute->attribute = $changedFieldName;
+                    $attribute->value = $newValue;
+                    $attribute->save();
+                }
+                else
+                {
+                    $attribute->value = $newValue;
+                    $attribute->update();
+                }
+
+                // Safe to end here, attribute is language agnostic
+                return json_encode(array('result' => 'success'));
+            }
+
 
             // Validate question (e.g. for unique code)
             if ($question->validate() !== true)
@@ -379,7 +410,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
             gT('Help'),
             gT('Mandatory'),
             gT('Relevance equation'),
-            gT('Validation')
+            gT('Validation'),
+            gT('Randomization group name')
         );
 
         // handsontable needs this information for
@@ -407,6 +439,9 @@ class MassAction extends \ls\pluginmanager\PluginBase
             ),
             array(
                 'data' => 'preg',
+            ),
+            array(
+                'data' => 'random_group'  // Attribute
             )
         );
 
@@ -425,11 +460,19 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
         foreach ($questions as $question)
         {
+            $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
             $questionArr = array();
             foreach ($columns as $column)
             {
                 $field = $column['data'];
-                $questionArr[$field] = $question->$field;
+                if (isset($question->$field))
+                {
+                    $questionArr[$field] = $question->$field;
+                }
+                else if (isset($attributes[$field]))
+                {
+                    $questionArr[$field] = $attributes[$field];
+                }
             }
             $data[] = $questionArr;
         }
