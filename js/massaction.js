@@ -179,7 +179,15 @@ $(document).ready(function() {
                 }
 
                 $(latestSearch).each(function(i, cell) {
-                    var regexp = new RegExp(searchString, 'g');
+
+                    /**
+                     * Copied from here: http://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+                     */
+                    function escapeRegExp(str) {
+                          return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+                    }
+
+                    var regexp = new RegExp(escapeRegExp(searchString), 'g');
                     var cellData  = hot.getDataAtCell(cell.row, cell.col);
                     if (cellData.replace) {
                         var newCellData = cellData.replace(regexp, replaceString);
