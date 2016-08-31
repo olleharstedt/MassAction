@@ -181,8 +181,13 @@ $(document).ready(function() {
                 $(latestSearch).each(function(i, cell) {
                     var regexp = new RegExp(searchString, 'g');
                     var cellData  = hot.getDataAtCell(cell.row, cell.col);
-                    var newCellData = cellData.replace(regexp, replaceString);
-                    hot.setDataAtCell(cell.row, cell.col, newCellData);
+                    if (cellData.replace) {
+                        var newCellData = cellData.replace(regexp, replaceString);
+                        hot.setDataAtCell(cell.row, cell.col, newCellData);
+                    }
+                    else {
+                        // Readonly field?
+                    }
                 });
 
             });
