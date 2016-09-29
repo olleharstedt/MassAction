@@ -302,7 +302,13 @@ class MassAction extends \ls\pluginmanager\PluginBase
                 // Safe to end here, attribute is language agnostic
                 return json_encode(array('result' => 'success'));
             }
-
+            else
+            {
+                return json_encode(array(
+                    'result' => 'error',
+                    'message' => 'Neither attribute nor question field'
+                ));
+            }
 
             // Validate question (e.g. for unique code)
             if ($question->validate() !== true)
@@ -443,7 +449,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
             gT('Mandatory'),
             gT('Relevance equation'),
             gT('Validation'),
-            gT('Randomization group name')
+            gT('Randomization group name'),
+            gT('Public statistics')
         );
 
         // handsontable needs this information for
@@ -482,6 +489,9 @@ class MassAction extends \ls\pluginmanager\PluginBase
             ),
             array(
                 'data' => 'random_group'  // Attribute
+            ),
+            array(
+                'data' => 'public_statistics'  // Attribute
             )
         );
 
@@ -496,7 +506,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
             '0',
             '100',
             '100',
-            '300'
+            '200',
+            '150'
         );
 
         $data = array();
