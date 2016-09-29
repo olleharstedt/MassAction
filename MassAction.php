@@ -451,7 +451,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
             gT('Validation'),
             gT('Randomization group name'),
             gT('Public statistics'),
-            gT('Show graph')
+            gT('Show graph'),
+            gT('Graph type')
         );
 
         // handsontable needs this information for
@@ -496,6 +497,9 @@ class MassAction extends \ls\pluginmanager\PluginBase
             ),
             array(
                 'data' => 'statistics_showgraph' // Attribute
+            ),
+            array(
+                'data' => 'statistics_graphtype'
             )
         );
 
@@ -511,6 +515,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
             '100',
             '100',
             '200',
+            '150',
             '150',
             '150'
         );
