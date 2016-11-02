@@ -925,6 +925,11 @@ class MassAction extends \ls\pluginmanager\PluginBase
                 'width' => 0
             )),
             new Column(array(
+                'header' => gT('Other'),
+                'data'=> 'other',
+                'width' => 50
+            )),
+            new Column(array(
                 'header' => gT('Relevance equation'),
                 'data' => 'relevance',
             )),
@@ -945,12 +950,12 @@ class MassAction extends \ls\pluginmanager\PluginBase
             new Column(array(
                 'header' => gT('Show graph'),
                 'data' => 'statistics_showgraph',
-                'width' => 150,
+                'width' => 50,
             )),
             new Column(array(
                 'header' => gT('Graph type'),
                 'data' => 'statistics_graphtype',
-                'width' => 150,
+                'width' => 50,
             )),
             new Column(array(
                 'header' => gT('Random order'),
