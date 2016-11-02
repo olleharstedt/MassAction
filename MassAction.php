@@ -26,17 +26,21 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $config = require(Yii::app()->basePath . '/config/version.php');
         $this->lsVersion = $config['versionnumber'];
 
-        // Add build number ?
-        if (floatval($this->lsVersion) >= 2.5)
+                // Old version schema, 2.06lts
+        if ($this->lsVersion == '2.06lts'
+                // New version schema, like 2.6.x-lts
+                || (strpos($this->lsVersion, 'lts') !== false
+                    && strpos($this->lsVersion, '2.6') !== false
+            ))
+        {
+            $this->subscribe('newDirectRequest');
+            $this->subscribe('afterSurveyMenuLoad');
+        }
+        else if (floatval($this->lsVersion) >= 2.50)
         {
             $this->subscribe('beforeToolsMenuRender');
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterQuickMenuLoad');
-        }
-        elseif ($this->lsVersion == '2.06lts')
-        {
-            $this->subscribe('newDirectRequest');
-            $this->subscribe('afterSurveyMenuLoad');
         }
         else
         {
@@ -170,7 +174,9 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $data['saveQuestionGroupChangeLink'] = $saveQuestionGroupChangeLink;
         $data['saveTokenChangeLink'] = $saveTokenChangeLink;
 
-        $content = $this->renderPartial('index', $data, true);
+        // NB: Cannot use $this->renderPartial() because 2.06lts support
+        Yii::setPathOfAlias('massAction', dirname(__FILE__));
+        $content = Yii::app()->controller->renderPartial('massAction.views.index', $data, true);
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/bower_components');
         App()->clientScript->registerCssFile("$assetsUrl/handsontable/dist/handsontable.full.css");
