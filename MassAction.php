@@ -438,103 +438,30 @@ class MassAction extends \ls\pluginmanager\PluginBase
      */
     protected function questionsToJSON(array $questions)
     {
-        // Header
-        $colHeaders = array(
-            gT('ID'),
-            gT('Group'),
-            gT('Type'),
-            gT('Code'),
-            gT('Question'),
-            gT('Help'),
-            gT('Mandatory'),
-            gT('Relevance equation'),
-            gT('Validation'),
-            gT('Randomization group name'),
-            gT('Public statistics'),
-            gT('Show graph'),
-            gT('Graph type')
-        );
-
-        // handsontable needs this information for
-        // readonly option
-        $columns = array(
-            // TODO: hidden?
-            array(
-                'data' => 'qid',
-                'readOnly' => true
-            ),
-            array(
-                'data' => 'gid',
-                'readOnly' => true
-            ),
-            array(
-                'data' => 'type',
-                'readOnly' => true
-            ),
-            array(
-                'data' => 'title',
-            ),
-            array(
-                'data' => 'question',
-            ),
-            array(
-                'data' => 'help',
-            ),
-            array(
-                'data' => 'mandatory',
-            ),
-            array(
-                'data' => 'relevance',
-            ),
-            array(
-                'data' => 'preg',
-            ),
-            array(
-                'data' => 'random_group'  // Attribute
-            ),
-            array(
-                'data' => 'public_statistics'  // Attribute
-            ),
-            array(
-                'data' => 'statistics_showgraph' // Attribute
-            ),
-            array(
-                'data' => 'statistics_graphtype'
-            )
-        );
-
-        // Limit width
-        $colWidths = array(
-            '100',
-            '50',
-            '50',
-            '100',
-            '300',
-            '300',
-            '0',
-            '100',
-            '100',
-            '200',
-            '150',
-            '150',
-            '150'
-        );
-
         $data = array();
+        $colWidths = array();
+        $colHeaders = array();
+        $columns = array();
+        $questionColumns = $this->getQuestionColumns();
 
-        foreach ($questions as $question)
-        {
+        foreach ($questionColumns as $column) {
+            $colWidths[] = $column->width;
+            $colHeaders[] = $column->header;
+            $columns[] = array(
+                'data' => $column->data,
+                'readonly' => $column->readonly
+            );
+        }
+
+        foreach ($questions as $question) {
             $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
             $questionArr = array();
-            foreach ($columns as $column)
-            {
-                $field = $column['data'];
-                if (isset($question->$field))
-                {
+            foreach ($questionColumns as $column) {
+                $field = $column->data;
+                if (isset($question->$field)) {
                     $questionArr[$field] = $question->$field;
                 }
-                else if (isset($attributes[$field]))
-                {
+                else if (isset($attributes[$field])) {
                     $questionArr[$field] = $attributes[$field];
                 }
             }
@@ -953,6 +880,111 @@ class MassAction extends \ls\pluginmanager\PluginBase
                 $event->setContent($this, $content);
             }
         }
+    }
+
+    /**
+     * @return array<Column>
+     */
+    private function getQuestionColumns()
+    {
+        return array(
+            new Column(array(
+                'data' => 'qid',
+                'header' => gT('ID'),
+                'readonly' => true
+            )),
+            new Column(array(
+                'data' => 'gid',
+                'header' => gT('Group'),
+                'readonly' => true,
+                'width' => 50
+            )),
+            new Column(array(
+                'data' => 'type',
+                'header' => gT('Type'),
+                'readonly' => true,
+                'width' => 50
+            )),
+            new Column(array(
+                'header' => gT('Code'),
+                'data' => 'title',
+            )),
+            new Column(array(
+                'header' => gT('Question'),
+                'data' => 'question',
+                'width' => 300,
+            )),
+            new Column(array(
+                'header' => gT('Help'),
+                'data' => 'help',
+                'width' => 300,
+            )),
+            new Column(array(
+                'header' => gT('Mandatory'),
+                'data'=> 'mandatory',
+                'width' => 0
+            )),
+            new Column(array(
+                'header' => gT('Relevance equation'),
+                'data' => 'relevance',
+            )),
+            new Column(array(
+                'header' => gT('Validation'),
+                'data' => 'preg',
+            )),
+            new Column(array(
+                'header' => gT('Randomization group name'),
+                'data' => 'random_group',
+                'width' => 200,
+            )),
+            new Column(array(
+                'header' => gT('Public statistics'),
+                'data' => 'public_statistics',
+                'width' => 150,
+            )),
+            new Column(array(
+                'header' => gT('Show graph'),
+                'data' => 'statistics_showgraph',
+                'width' => 150,
+            )),
+            new Column(array(
+                'header' => gT('Graph type'),
+                'data' => 'statistics_graphtype',
+                'width' => 150,
+            )),
+            new Column(array(
+                'header' => gT('Random order'),
+                'data' => 'random_order',
+            )),
+            new Column(array(
+                'header' => gT('Hide tip'),
+                'data' => 'hide_tip',
+            )),
+            new Column(array(
+                'header' => gT('Always hidden'),
+                'data' => 'hidden'
+            )),
+            new Column(array(
+                'header' => gT('Max answers'),
+                'data' => 'max_answers'
+            )),
+            new Column(array(
+                'header' => gT('Min answers'),
+                'data' => 'min_answers'
+            )),
+            new Column(array(
+                'header' => gT('Array filter'),
+                'data' => 'array_filter'
+            )),
+            new Column(array(
+                'header' => gT('Array filter excl.'),
+                'data' => 'array_filter_exclude'
+            )),
+            new Column(array(
+                'header' => gT('Question val. eq.'),
+                'data' => 'em_validation_q'
+            )),
+        );
     }
 
 }

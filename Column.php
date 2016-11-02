@@ -26,6 +26,9 @@ class Column
      */
     public $data;
 
+    /**
+     * @return Column
+     */
     public function __construct($options)
     {
         if (!isset($options['data'])) {
