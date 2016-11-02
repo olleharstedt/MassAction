@@ -36,6 +36,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterSurveyMenuLoad');
         }
+        // TODO: Use another way to compare version, like version_compare?
+        // TODO: Because 2.50 > 2.6 in semantic versioning
         else if (floatval($this->lsVersion) >= 2.50)
         {
             $this->subscribe('beforeToolsMenuRender');
@@ -46,15 +48,17 @@ class MassAction extends \ls\pluginmanager\PluginBase
         {
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterSurveyMenuLoad');
-            $this->subscribe('beforeActivate');  // To show a warning message when activate
-            $this->subscribe('beforeSurveySettings');  // We are unsure afterSurveyMenuLoad event , then add a link to the plugin settings
+            $this->subscribe('beforeActivate');         // To show a warning message when activate
+            $this->subscribe('beforeSurveySettings');   // We are unsure afterSurveyMenuLoad event, then add a link to the plugin settings
         }
 
     }
+
     public function beforeActivate()
     {
         App()->setFlashMessage(gT("Warning : this plugin was not tested with this LimeSurvey version."),"error");
     }
+
     public function beforeSurveySettings()
     {
         $this->event->set("surveysettings.{$this->id}", array(
@@ -189,8 +193,11 @@ class MassAction extends \ls\pluginmanager\PluginBase
         App()->clientScript->registerScriptFile("$assetsUrl/massaction.js");
 
         // Include extra JavaScript for 2.06lts
-        if (floatval($this->lsVersion) < 2.5)
-        {
+        if ($this->lsVersion == '2.06lts'
+                // New version schema, like 2.6.x-lts
+                || (strpos($this->lsVersion, 'lts') !== false
+                    && strpos($this->lsVersion, '2.6') !== false)
+            ) {
             App()->clientScript->registerScriptFile("$assetsUrl/massaction206.js");
         }
 
@@ -865,25 +872,29 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
     public function newDirectRequest()
     {
-        if (empty($this->lsVersion))
-        {
+        if (empty($this->lsVersion)) {
             throw new Exception("Internal error: this->lsVersion is not set");
         }
 
         $event = $this->event;
-        if ($event->get('target') == "MassAction")
-        {
+        if ($event->get('target') == "MassAction") {
             $request = $event->get('request');
             $functionToCall = $event->get('function');
+
             // TODO: Hardcode functions
-            if (floatval($this->lsVersion) >= 2.5 || $functionToCall != "actionIndex")
-            {
+            if ($functionToCall != 'actionIndex') {
                 echo $this->$functionToCall($request);
             }
-            else
-            {
+            else if ($this->lsVersion == '2.06lts'
+                    // New version schema, like 2.6.x-lts
+                    || (strpos($this->lsVersion, 'lts') !== false
+                        && strpos($this->lsVersion, '2.6') !== false)
+                ) {
                 $content = $this->$functionToCall($request);
                 $event->setContent($this, $content);
+            }
+            else {
+                echo $this->$functionToCall($request);
             }
         }
     }
