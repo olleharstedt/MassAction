@@ -1,16 +1,34 @@
 <?php
 
+/**
+ * This is a file
+ *
+ * PHP version 5
+ *
+ * @category Plugin
+ * @package  MassAction
+ * @author   Olle Haerstedt <blabla@bla.com>
+ * @license  https://opensource.org/licenses/MIT MIT
+ * @link     -
+ */
+
 use \ls\menu\MenuItem;
 
 /**
- * Mass action
+ * This is a file
  *
- * @since 2016-04-29
- * @author Olle Härstedt
+ * PHP version 5
+ *
+ * @category Plugin
+ * @package  MassAction
+ * @author   Olle Haerstedt <blabla@bla.com>
+ * @license  https://opensource.org/licenses/MIT MIT
+ * @link     -
  */
 class MassAction extends \ls\pluginmanager\PluginBase
 {
-    static protected $description = 'Edit many questions or question groups in one page';
+    static protected $description = 'Edit many questions or question groups 
+        in one page';
     static protected $name = 'Mass action';
 
     protected $storage = 'DbStorage';
@@ -21,64 +39,91 @@ class MassAction extends \ls\pluginmanager\PluginBase
      */
     protected $lsVersion = '2.5';  // Default to 2.5
 
+    /**
+     * Init stuff
+     *
+     * @return void
+     */
     public function init()
     {
-        $config = require(Yii::app()->basePath . '/config/version.php');
+        $config = include Yii::app()->basePath . '/config/version.php';
         $this->lsVersion = $config['versionnumber'];
 
-                // Old version schema, 2.06lts
+        // Old version schema, 2.06lts
+        // New version schema, like 2.6.x-lts
         if ($this->lsVersion == '2.06lts'
-                // New version schema, like 2.6.x-lts
-                || (strpos($this->lsVersion, 'lts') !== false
-                    && strpos($this->lsVersion, '2.6') !== false
-            ))
-        {
+            || (strpos($this->lsVersion, 'lts') !== false  
+            && strpos($this->lsVersion, '2.6') !== false)
+        ) {
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterSurveyMenuLoad');
-        }
-        // TODO: Use another way to compare version, like version_compare?
-        // TODO: Because 2.50 > 2.6 in semantic versioning
-        else if (floatval($this->lsVersion) >= 2.50)
-        {
+        } else if (floatval($this->lsVersion) >= 2.50) {
+            // TODO: Use another way to compare version, like version_compare?
+            // TODO: Because 2.50 > 2.6 in semantic versioning
             $this->subscribe('beforeToolsMenuRender');
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterQuickMenuLoad');
-        }
-        else
-        {
+        } else {
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterSurveyMenuLoad');
-            $this->subscribe('beforeActivate');         // To show a warning message when activate
-            $this->subscribe('beforeSurveySettings');   // We are unsure afterSurveyMenuLoad event, then add a link to the plugin settings
+
+            // To show a warning message when activate
+            $this->subscribe('beforeActivate');
+
+            // We are unsure afterSurveyMenuLoad event,
+            // then add a link to the plugin settings
+            $this->subscribe('beforeSurveySettings');
         }
 
     }
 
+    /**
+     * Run before activation
+     *
+     * @return void
+     */
     public function beforeActivate()
     {
-        App()->setFlashMessage(gT("Warning : this plugin was not tested with this LimeSurvey version."),"error");
+        App()->setFlashMessage(
+            gT("Warning : this plugin was not tested with this LimeSurvey version."),
+            "error"
+        );
     }
 
+    /**
+     * Run before survey settings are shown
+     *
+     * @return void
+     */
     public function beforeSurveySettings()
     {
-        $this->event->set("surveysettings.{$this->id}", array(
-            'name' => get_class($this),
-            'settings' => array(
-                'linkMassAction'=>array(
-                    'type'=>'link',
-                    'link'=>$this->api->createUrl(
-                        'plugins/direct',
-                        array(
-                            'plugin' => get_class($this),
-                            'surveyId' => $this->event->get('survey'),
-                            'function' => 'actionIndex'
-                        )
+        $this->event->set(
+            "surveysettings.{$this->id}",
+            array(
+                'name' => get_class($this),
+                'settings' => array(
+                    'linkMassAction'=>array(
+                        'type'=>'link',
+                        'link'=>$this->api->createUrl(
+                            'plugins/direct',
+                            array(
+                                'plugin' => get_class($this),
+                                'surveyId' => $this->event->get('survey'),
+                                'function' => 'actionIndex'
+                            )
+                        ),
+                        'label'=>'Do some mass action on this survey',
                     ),
-                    'label'=>'Do some mass action on this survey',
                 ),
-            ),
-        ));
+            )
+        );
     }
+
+    /**
+     * Run before tools menu is rendered
+     *
+     * @return void
+     */
     public function beforeToolsMenuRender()
     {
         $event = $this->getEvent();
@@ -94,24 +139,29 @@ class MassAction extends \ls\pluginmanager\PluginBase
             )
         );
 
-        $menuItem = new MenuItem(array(
-            'label' => gT('Mass action'),
-            'iconClass' => 'fa fa-table',
-            'href' => $href
-        ));
+        $menuItem = new MenuItem(
+            array(
+                'label' => gT('Mass action'),
+                'iconClass' => 'fa fa-table',
+                'href' => $href
+            )
+        );
 
         $event->append('menuItems', array($menuItem));
     }
 
     /**
+     * Main function
+     *
+     * @param int $surveyId Survey id
+     *
      * @return string
      */
     public function actionIndex($surveyId)
     {
 
         // In 2.06, we get survey ID from URL param
-        if ($surveyId instanceof LSHttpRequest)
-        {
+        if ($surveyId instanceof LSHttpRequest) {
             $surveyId = Yii::app()->request->getParam('surveyId');
         }
 
