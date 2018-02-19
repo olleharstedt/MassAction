@@ -7,7 +7,7 @@ Under development
 ### Requirements
 
 * Activated QuickMenu core plugin
-* LimeSurvey 2.53.0 or 2.06lts
+* LimeSurvey 2.53.0 (up to 2.73) or 2.06LTS. Not yet available for LimeSurvey 3.x.
 
 ### Installation
 
