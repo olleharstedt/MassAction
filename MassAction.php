@@ -1,10 +1,6 @@
 <?php
 
 /**
- * This is a file
- *
- * PHP version 5
- *
  * @category Plugin
  * @package  MassAction
  * @author   Olle Haerstedt <blabla@bla.com>
@@ -12,7 +8,10 @@
  * @link     -
  */
 
-use \ls\menu\MenuItem;
+// Psalm needs this.
+require_once(__DIR__ . '/Column.php');
+
+use \LimeSurvey\Menu\MenuItem;
 
 /**
  * This is a file
@@ -25,12 +24,21 @@ use \ls\menu\MenuItem;
  * @license  https://opensource.org/licenses/MIT MIT
  * @link     -
  */
-class MassAction extends \ls\pluginmanager\PluginBase
+class MassAction extends PluginBase
 {
-    static protected $description = 'Edit many questions or question groups 
-        in one page';
+    /**
+     * @var string
+     */
+    static protected $description = 'Edit many questions or question groups in one page';
+
+    /**
+     * @var string
+     */
     static protected $name = 'Mass action';
 
+    /**
+     * @var string
+     */
     protected $storage = 'DbStorage';
 
     /**
@@ -52,12 +60,12 @@ class MassAction extends \ls\pluginmanager\PluginBase
         // Old version schema, 2.06lts
         // New version schema, like 2.6.x-lts
         if ($this->lsVersion == '2.06lts'
-            || (strpos($this->lsVersion, 'lts') !== false  
+            || (strpos($this->lsVersion, 'lts') !== false
             && strpos($this->lsVersion, '2.6') !== false)
         ) {
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterSurveyMenuLoad');
-        } else if (floatval($this->lsVersion) >= 2.50) {
+        } elseif (floatval($this->lsVersion) >= 2.50) {
             // TODO: Use another way to compare version, like version_compare?
             // TODO: Because 2.50 > 2.6 in semantic versioning
             $this->subscribe('beforeToolsMenuRender');
@@ -153,8 +161,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
     /**
      * Main function
      *
-     * @param int $surveyId Survey id
-     *
+     * @param int|LSHttpRequest $surveyId Survey id
      * @return string
      */
     public function actionIndex($surveyId)
@@ -234,7 +241,10 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/bower_components');
         App()->clientScript->registerCssFile("$assetsUrl/handsontable/dist/handsontable.full.css");
-        App()->clientScript->registerScriptFile("$assetsUrl/handsontable/dist/handsontable.full.js", CClientScript::POS_END);
+        App()->clientScript->registerScriptFile(
+            "$assetsUrl/handsontable/dist/handsontable.full.js",
+            CClientScript::POS_END
+        );
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/css');
         App()->clientScript->registerCssFile("$assetsUrl/massaction.css");
@@ -262,16 +272,15 @@ class MassAction extends \ls\pluginmanager\PluginBase
         // Do nothing if QuickMenu plugin is not active
         $quickMenuExistsAndIsActive = $this->api->pluginExists('QuickMenu')
             && $this->api->pluginIsActive('QuickMenu');
-        if (!$quickMenuExistsAndIsActive)
-        {
+        if (!$quickMenuExistsAndIsActive) {
             return;
         }
 
         $event = $this->getEvent();
-        $settings = $this->getPluginSettings(true);
+        //$settings = $this->getPluginSettings(true);
 
         $data = $event->get('aData');
-        $activated = $data['activated'];
+        //$activated = $data['activated'];
         $surveyId = $data['surveyid'];
 
         $href = Yii::app()->createUrl(
@@ -284,18 +293,18 @@ class MassAction extends \ls\pluginmanager\PluginBase
             )
         );
 
-        $button = new QuickMenuButton(array(
-            'name' => 'massAction',
-            'href' => $href,
-            'tooltip' => gT('Mass action'),
-            'iconClass' => 'fa fa-table navbar-brand',
-            'neededPermission' => array('surveycontent', 'update')
-        ));
-        $db = Yii::app()->db;
+        $button = new QuickMenuButton(
+            [
+                'name' => 'massAction',
+                'href' => $href,
+                'tooltip' => gT('Mass action'),
+                'iconClass' => 'fa fa-table navbar-brand',
+                'neededPermission' => array('surveycontent', 'update')
+            ]
+        );
         $userId = Yii::app()->user->getId();
         $orderings = QuickMenu::getOrder($userId);
-        if (isset($orderings['massAction']))
-        {
+        if (isset($orderings['massAction'])) {
             $button->setOrder($orderings['massAction']);
         }
 
@@ -310,25 +319,27 @@ class MassAction extends \ls\pluginmanager\PluginBase
     {
         // Check update permission
         $surveyId = $request->getParam('surveyId');
-        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'update'))
-        {
-            return json_encode(array(
-                'result' => 'error',
-                'message' => "You don't have access to update survey content"
-            ));
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'update')) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "You don't have access to update survey content"
+                ]
+            );
         }
 
-        try
-        {
+        try {
             $surveyId = $request->getParam('surveyId');
             $row = $request->getParam('row');
             $change = $request->getParam('change');
             $baselang = Survey::model()->findByPk($surveyId)->language;
 
-            $question = Question::model()->findByPk(array(
-                'qid' => $row['qid'],
-                'language' => $baselang
-            ));
+            $question = Question::model()->findByPk(
+                [
+                    'qid' => $row['qid'],
+                    'language' => $baselang
+                ]
+            );
 
             $changedFieldName = $change[1];
             $newValue = $change[3];
@@ -336,50 +347,47 @@ class MassAction extends \ls\pluginmanager\PluginBase
             $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
 
             // Question field
-            if (isset($question->$changedFieldName))
-            {
+            if (isset($question->$changedFieldName)) {
                 $question->$changedFieldName = $newValue;
-            }
-            // Question attribute (lime_question_attributes table)
-            else if (isset($attributes[$changedFieldName]))
-            {
-                $attribute = QuestionAttribute::model()->findByAttributes(array(
-                    'qid' => $question->qid,
-                    'attribute' => $changedFieldName
-                ));
+            } elseif (isset($attributes->$changedFieldName)) {
+                // Question attribute (lime_question_attributes table)
+                $attribute = QuestionAttribute::model()->findByAttributes(
+                    [
+                        'qid' => $question->qid,
+                        'attribute' => $changedFieldName
+                    ]
+                );
 
-                if (empty($attribute))
-                {
+                if (empty($attribute)) {
                     $attribute = new QuestionAttribute();
                     $attribute->qid = $question->qid;
                     $attribute->attribute = $changedFieldName;
                     $attribute->value = $newValue;
                     $attribute->save();
-                }
-                else
-                {
+                } else {
                     $attribute->value = $newValue;
                     $attribute->update();
                 }
 
                 // Safe to end here, attribute is language agnostic
                 return json_encode(array('result' => 'success'));
-            }
-            else
-            {
-                return json_encode(array(
-                    'result' => 'error',
-                    'message' => 'Neither attribute nor question field'
-                ));
+            } else {
+                return json_encode(
+                    [
+                        'result' => 'error',
+                        'message' => 'Neither attribute nor question field'
+                    ]
+                );
             }
 
             // Validate question (e.g. for unique code)
-            if ($question->validate() !== true)
-            {
-                return json_encode(array(
-                    'result' => 'error',
-                    'message' => 'Could not validate question'
-                ));
+            if ($question->validate() !== true) {
+                return json_encode(
+                    [
+                        'result' => 'error',
+                        'message' => 'Could not validate question'
+                    ]
+                );
             }
 
             $question->save();
@@ -387,21 +395,23 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
             // All well!
             return json_encode(array('result' => 'success'));
-        }
-        catch (Exception $ex)
-        {
+        } catch (Exception $ex) {
             // Any error is sent as JSON to client
-            return json_encode(array(
-                'result' => 'error',
-                'message' => $ex->getMessage()
-            ));
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => $ex->getMessage()
+                ]
+            );
         }
 
         // This could not happen
-        return json_encode(array(
-            'result' => 'error',
-            'message' => 'Impossibru!'
-        ));
+        return json_encode(
+            [
+                'result' => 'error',
+                'message' => 'Impossibru!'
+            ]
+        );
     }
 
     /**
@@ -410,8 +420,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
      * all language version of the question.
      *
      * @param object $question
-     * @param string fieldName - The name of the database field to update
-     * @param mixed value
+     * @param string $fieldName - The name of the database field to update
+     * @param mixed $value
      * @return void
      */
     protected function saveQuestionForAllLanguages($question, $fieldName, $value)
@@ -421,18 +431,15 @@ class MassAction extends \ls\pluginmanager\PluginBase
             'help'
         );
 
-        if (!in_array($fieldName, $localizedFields))
-        {
+        if (!in_array($fieldName, $localizedFields)) {
             // Save in all languages
             Yii::app()->db->createCommand()->update(
                 '{{questions}}',
                 array("$fieldName" => $value),
                 'qid = :qid',
-                array(':qid' => $question->qid
-            ));
-        }
-        else
-        {
+                array(':qid' => $question->qid)
+            );
+        } else {
             // Localized field, don't save
         }
     }
@@ -440,8 +447,8 @@ class MassAction extends \ls\pluginmanager\PluginBase
     /**
      * Same as above.
      * @param object $questionGroup
-     * @param string fieldName - The name of the database field to update
-     * @param mixed value
+     * @param string $fieldName - The name of the database field to update
+     * @param mixed $value
      * @return void
      */
     protected function saveQuestionGroupForAllLanguages($questionGroup, $fieldName, $value)
@@ -451,43 +458,45 @@ class MassAction extends \ls\pluginmanager\PluginBase
             'description'
         );
 
-        if (!in_array($fieldName, $localizedFields))
-        {
+        if (!in_array($fieldName, $localizedFields)) {
             // Save in all languages
             Yii::app()->db->createCommand()->update(
                 '{{groups}}',
                 array("$fieldName" => $value),
                 'gid = :gid',
-                array(':gid' => $questionGroup->gid
-            ));
-        }
-        else
-        {
+                array(':gid' => $questionGroup->gid)
+            );
+        } else {
             // Localized field, don't save
         }
     }
 
     /**
      * @param LSHttpRequest $request
+     * @return string JSON
      */
     public function getQuestions(LSHttpRequest $request)
     {
         $surveyId = $request->getParam('surveyId');
 
         // Check read permission
-        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read'))
-        {
-            return json_encode(array(
-                'result' => 'error',
-                'message' => "You don't have access to read survey content"
-            ));
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read')) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "You don't have access to read survey content"
+                ]
+            );
+
         }
 
         $baselang = Survey::model()->findByPk($surveyId)->language;
-        $questions = Question::model()->findAllByAttributes(array(
-            'sid' => $surveyId,
-            'language' => $baselang
-        ));
+        $questions = Question::model()->findAllByAttributes(
+            [
+                'sid' => $surveyId,
+                'language' => $baselang
+            ]
+        );
 
         return $this->questionsToJSON($questions);
     }
@@ -496,7 +505,7 @@ class MassAction extends \ls\pluginmanager\PluginBase
      * Turn questions into JSON
      *
      * @todo Use IToJSON interface for models instead?
-     * @param array<Question>
+     * @param Question[] $questions
      * @return string
      */
     protected function questionsToJSON(array $questions)
@@ -523,51 +532,56 @@ class MassAction extends \ls\pluginmanager\PluginBase
                 $field = $column->data;
                 if (isset($question->$field)) {
                     $questionArr[$field] = $question->$field;
-                }
-                else if (isset($attributes[$field])) {
+                } elseif (isset($attributes[$field])) {
                     $questionArr[$field] = $attributes[$field];
                 }
             }
             $data[] = $questionArr;
         }
 
-        return json_encode(array(
-            'colHeaders' => $colHeaders,
-            'colWidths' => $colWidths,
-            'columns' => $columns,
-            'data' => $data
-        ));
+        return json_encode(
+            [
+                'colHeaders' => $colHeaders,
+                'colWidths' => $colWidths,
+                'columns' => $columns,
+                'data' => $data
+            ]
+        );
 
     }
 
     /**
      * @param LSHttpRequest $request
-     * @return json string
+     * @return string JSON
      */
     public function getQuestionGroups(LSHttpRequest $request)
     {
         $surveyId = $request->getParam('surveyId');
 
         // Check read permission
-        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read'))
-        {
-            return json_encode(array(
-                'result' => 'error',
-                'message' => "You don't have access to read survey content"
-            ));
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read')) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "You don't have access to read survey content"
+                ]
+            );
         }
 
         $baselang = Survey::model()->findByPk($surveyId)->language;
-        $questionGroups = QuestionGroup::model()->findAllByAttributes(array(
-            'sid' => $surveyId,
-            'language' => $baselang
-        ));
+        $questionGroups = QuestionGroup::model()->findAllByAttributes(
+            [
+                'sid' => $surveyId,
+                'language' => $baselang
+            ]
+        );
 
         return $this->questionGroupsToJSON($questionGroups);
     }
 
     /**
-     * @return json string
+     * @param QuestionGroup[] $questionGroups
+     * @return string JSON
      */
     protected function questionGroupsToJSON($questionGroups)
     {
@@ -613,24 +627,23 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
         $data = array();
 
-        foreach ($questionGroups as $questionGroup)
-        {
+        foreach ($questionGroups as $questionGroup) {
             $groupArr = array();
-            foreach ($columns as $column)
-            {
+            foreach ($columns as $column) {
                 $field = $column['data'];
                 $groupArr[$field] = $questionGroup->$field;
             }
             $data[] = $groupArr;
         }
 
-        return json_encode(array(
-            'colHeaders' => $colHeaders,
-            'colWidths' => $colWidths,
-            'columns' => $columns,
-            'data' => $data
-        ));
-
+        return json_encode(
+            [
+                'colHeaders' => $colHeaders,
+                'colWidths' => $colWidths,
+                'columns' => $columns,
+                'data' => $data
+            ]
+        );
     }
 
     /**
@@ -644,25 +657,27 @@ class MassAction extends \ls\pluginmanager\PluginBase
     {
         // Check update permission
         $surveyId = $request->getParam('surveyId');
-        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'update'))
-        {
-            return json_encode(array(
-                'result' => 'error',
-                'message' => "You don't have access to update survey content"
-            ));
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'update')) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "You don't have access to update survey content"
+                ]
+            );
         }
 
-        try
-        {
+        try {
             $surveyId = $request->getParam('surveyId');
             $row = $request->getParam('row');
             $change = $request->getParam('change');
             $baselang = Survey::model()->findByPk($surveyId)->language;
 
-            $questionGroup = QuestionGroup::model()->findByPk(array(
-                'gid' => $row['gid'],
-                'language' => $baselang
-            ));
+            $questionGroup = QuestionGroup::model()->findByPk(
+                [
+                    'gid' => $row['gid'],
+                    'language' => $baselang
+                ]
+            );
 
             $changedFieldName = $change[1];
             $newValue = $change[3];
@@ -673,14 +688,14 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
             // All well!
             return json_encode(array('result' => 'success'));
-        }
-        catch (Exception $ex)
-        {
+        } catch (Exception $ex) {
             // Any error is sent as JSON to client
-            return json_encode(array(
-                'result' => 'error',
-                'message' => $ex->getMessage()
-            ));
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => $ex->getMessage()
+                ]
+            );
         }
     }
 
@@ -695,22 +710,24 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $surveyId = $request->getParam('surveyId');
 
         // Check read permission
-        if (!Permission::model()->hasSurveyPermission($surveyId, 'token', 'read'))
-        {
-            return json_encode(array(
-                'result' => 'error',
-                'message' => "You don't have access to read tokens"
-            ));
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'token', 'read')) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "You don't have access to read tokens"
+                ]
+            );
         }
 
         // Check to see if a token table exists for this survey
         $tokenExists = tableExists('{{tokens_' . $surveyId . '}}');
-        if (!$tokenExists)
-        {
-            return json_encode(array(
-                'result' => 'error',
-                'message' => "Found no token table"
-            ));
+        if (!$tokenExists) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "Found no token table"
+                ]
+            );
         }
 
         $tokens = TokenDynamic::model($surveyId)->findAll();
@@ -808,11 +825,9 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
         $data = array();
 
-        foreach ($tokens as $token)
-        {
+        foreach ($tokens as $token) {
             $tokenArr = array();
-            foreach ($columns as $column)
-            {
+            foreach ($columns as $column) {
                 $field = $column['data'];
                 $tokenArr[$field] = $token->$field;
             }
@@ -840,39 +855,43 @@ class MassAction extends \ls\pluginmanager\PluginBase
             '100'
         );
 
-        return json_encode(array(
-            'colHeaders' => $colHeaders,
-            'colWidths' => $colWidths,
-            'columns' => $columns,
-            'data' => $data
-        ));
+        return json_encode(
+            [
+                'colHeaders' => $colHeaders,
+                'colWidths' => $colWidths,
+                'columns' => $columns,
+                'data' => $data
+            ]
+        );
 
     }
 
     /**
      * Save token cell change
+     * @param LSHttpRequest $request
+     * @return string JSON
      */
     public function saveTokenChange(LSHttpRequest $request)
     {
         $surveyId = $request->getParam('surveyId');
 
         // Check update permission
-        if (!Permission::model()->hasSurveyPermission($surveyId, 'token', 'update'))
-        {
-            return json_encode(array(
-                'result' => 'error',
-                'message' => "You don't have access to update tokens"
-            ));
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'token', 'update')) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "You don't have access to update tokens"
+                ]
+            );
         }
 
-        try
-        {
+        try {
             $row = $request->getParam('row');
             $change = $request->getParam('change');
 
-            $token = TokenDynamic::model($surveyId)->findByPk(array(
-                'tid' => $row['tid'],
-            ));
+            $token = TokenDynamic::model($surveyId)->findByPk(
+                ['tid' => $row['tid']]
+            );
 
             $changedFieldName = $change[1];
             $newValue = $change[3];
@@ -882,19 +901,20 @@ class MassAction extends \ls\pluginmanager\PluginBase
 
             // All well!
             return json_encode(array('result' => 'success'));
-        }
-        catch (Exception $ex)
-        {
+        } catch (Exception $ex) {
             // Any error is sent as JSON to client
-            return json_encode(array(
-                'result' => 'error',
-                'message' => $ex->getMessage()
-            ));
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => $ex->getMessage()
+                ]
+            );
         }
     }
 
     /**
      * Specific for 2.06
+     * @return void
      */
     public function afterSurveyMenuLoad()
     {
@@ -920,6 +940,9 @@ class MassAction extends \ls\pluginmanager\PluginBase
         $event->set('menu', $menu);
     }
 
+    /**
+     * @return void
+     */
     public function newDirectRequest()
     {
         if (empty($this->lsVersion)) {
@@ -934,129 +957,170 @@ class MassAction extends \ls\pluginmanager\PluginBase
             // TODO: Hardcode functions
             if ($functionToCall != 'actionIndex') {
                 echo $this->$functionToCall($request);
-            }
-            else if ($this->lsVersion == '2.06lts'
+            } elseif ($this->lsVersion == '2.06lts'
                     // New version schema, like 2.6.x-lts
                     || (strpos($this->lsVersion, 'lts') !== false
                         && strpos($this->lsVersion, '2.6') !== false)
                 ) {
                 $content = $this->$functionToCall($request);
                 $event->setContent($this, $content);
-            }
-            else {
+            } else {
                 echo $this->$functionToCall($request);
             }
         }
     }
 
     /**
-     * @return array<Column>
+     * @return Column[]
      */
     private function getQuestionColumns()
     {
-        return array(
-            new Column(array(
-                'data' => 'qid',
-                'header' => gT('ID'),
-                'readonly' => true
-            )),
-            new Column(array(
-                'data' => 'gid',
-                'header' => gT('Group'),
-                'readonly' => true,
-                'width' => 50
-            )),
-            new Column(array(
-                'data' => 'type',
-                'header' => gT('Type'),
-                'readonly' => true,
-                'width' => 50
-            )),
-            new Column(array(
-                'header' => gT('Code'),
-                'data' => 'title',
-            )),
-            new Column(array(
-                'header' => gT('Question'),
-                'data' => 'question',
-                'width' => 300,
-            )),
-            new Column(array(
-                'header' => gT('Help'),
-                'data' => 'help',
-                'width' => 300,
-            )),
-            new Column(array(
-                'header' => gT('Mandatory'),
-                'data'=> 'mandatory',
-                'width' => 0
-            )),
-            new Column(array(
-                'header' => gT('Other'),
-                'data'=> 'other',
-                'width' => 50
-            )),
-            new Column(array(
-                'header' => gT('Relevance equation'),
-                'data' => 'relevance',
-            )),
-            new Column(array(
-                'header' => gT('Validation'),
-                'data' => 'preg',
-            )),
-            new Column(array(
-                'header' => gT('Randomization group name'),
-                'data' => 'random_group',
-                'width' => 200,
-            )),
-            new Column(array(
-                'header' => gT('Public statistics'),
-                'data' => 'public_statistics',
-                'width' => 150,
-            )),
-            new Column(array(
-                'header' => gT('Show graph'),
-                'data' => 'statistics_showgraph',
-                'width' => 50,
-            )),
-            new Column(array(
-                'header' => gT('Graph type'),
-                'data' => 'statistics_graphtype',
-                'width' => 50,
-            )),
-            new Column(array(
-                'header' => gT('Random order'),
-                'data' => 'random_order',
-            )),
-            new Column(array(
-                'header' => gT('Hide tip'),
-                'data' => 'hide_tip',
-            )),
-            new Column(array(
-                'header' => gT('Always hidden'),
-                'data' => 'hidden'
-            )),
-            new Column(array(
-                'header' => gT('Max answers'),
-                'data' => 'max_answers'
-            )),
-            new Column(array(
-                'header' => gT('Min answers'),
-                'data' => 'min_answers'
-            )),
-            new Column(array(
-                'header' => gT('Array filter'),
-                'data' => 'array_filter'
-            )),
-            new Column(array(
-                'header' => gT('Array filter excl.'),
-                'data' => 'array_filter_exclude'
-            )),
-            new Column(array(
-                'header' => gT('Question val. eq.'),
-                'data' => 'em_validation_q'
-            )),
-        );
+        return [
+            new Column(
+                [
+                    'data' => 'qid',
+                    'header' => gT('ID'),
+                    'readonly' => true
+                ]
+            ),
+            new Column(
+                [
+                    'data' => 'gid',
+                    'header' => gT('Group'),
+                    'readonly' => true,
+                    'width' => 50
+                ]
+            ),
+            new Column(
+                [
+                    'data' => 'type',
+                    'header' => gT('Type'),
+                    'readonly' => true,
+                    'width' => 50
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Code'),
+                    'data' => 'title',
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Question'),
+                    'data' => 'question',
+                    'width' => 300,
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Help'),
+                    'data' => 'help',
+                    'width' => 300,
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Mandatory'),
+                    'data'=> 'mandatory',
+                    'width' => 0
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Other'),
+                    'data'=> 'other',
+                    'width' => 50
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Relevance equation'),
+                    'data' => 'relevance',
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Validation'),
+                    'data' => 'preg',
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Randomization group name'),
+                    'data' => 'random_group',
+                    'width' => 200,
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Public statistics'),
+                    'data' => 'public_statistics',
+                    'width' => 150,
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Show graph'),
+                    'data' => 'statistics_showgraph',
+                    'width' => 50,
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Graph type'),
+                    'data' => 'statistics_graphtype',
+                    'width' => 50,
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Random order'),
+                    'data' => 'random_order',
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Hide tip'),
+                    'data' => 'hide_tip',
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Always hidden'),
+                    'data' => 'hidden'
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Max answers'),
+                    'data' => 'max_answers'
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Min answers'),
+                    'data' => 'min_answers'
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Array filter'),
+                    'data' => 'array_filter'
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Array filter excl.'),
+                    'data' => 'array_filter_exclude'
+                ]
+            ),
+            new Column(
+                [
+                    'header' => gT('Question val. eq.'),
+                    'data' => 'em_validation_q'
+                ]
+            ),
+        ];
     }
-
 }
