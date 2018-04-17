@@ -119,7 +119,7 @@ class MassAction extends PluginBase
                 "menu_description" => "MassAction",
                 "menu_icon" => "table",
                 "menu_icon_type" => "fontawesome",
-                "menu_link" => "admin/pluginhelper/sa/sidebody/plugin/massaction/method/index",
+                "menu_link" => "admin/pluginhelper/sa/sidebody/plugin/massaction/method/actionIndex",
                 "addSurveyId" => true,
                 "addQuestionGroupId" => false,
                 "addQuestionId" => false,
@@ -248,10 +248,12 @@ class MassAction extends PluginBase
         $data['saveQuestionChangeLink'] = $saveQuestionChangeLink;
         $data['saveQuestionGroupChangeLink'] = $saveQuestionGroupChangeLink;
         $data['saveTokenChangeLink'] = $saveTokenChangeLink;
+        $data['YII_CSRF_TOKEN'] = CHtml::hiddenField('YII_CSRF_TOKEN', Yii::app()->request->csrfToken);
 
         // NB: Cannot use $this->renderPartial() because 2.06lts support
         Yii::setPathOfAlias('massAction', dirname(__FILE__));
-        $content = Yii::app()->controller->renderPartial('massAction.views.index', $data, true);
+
+        $content = $this->api->renderTwig(__DIR__ . '/views/index.twig', $data);
 
         $assetsUrl = Yii::app()->assetManager->publish(dirname(__FILE__) . '/bower_components');
         App()->clientScript->registerCssFile("$assetsUrl/handsontable/dist/handsontable.full.css");
@@ -762,34 +764,6 @@ class MassAction extends PluginBase
                 ]
             );
         }
-    }
-
-    /**
-     * Specific for 2.06
-     * @return void
-     */
-    public function afterSurveyMenuLoad()
-    {
-        $event = $this->event;
-        $menu = $event->get('menu', array());
-        $surveyId = $event->get('surveyId');
-        $href = Yii::app()->createUrl(
-            'plugins/direct',
-            array(
-                'plugin' => 'MassAction',
-                'function' => 'actionIndex',
-                'surveyId' => $surveyId
-            )
-        );
-
-        $menu[] = array(
-            //'href' => "plugins/direct/MassAction?function=actionIndex",
-            'href' => $href,
-            'alt' => gT('Mass action'),
-            'image' => 'bounce.png'
-        );
-
-        $event->set('menu', $menu);
     }
 
     /**
