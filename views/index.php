@@ -36,7 +36,6 @@ var LS = LS || {};
 LS.plugin = LS.plugin || {};
 LS.plugin.massAction = LS.plugin.massAction || {};
 
-LS.plugin.massAction.container = document.getElementById('handsontable');
 LS.plugin.massAction.getQuestionsLink = '<?php echo $getQuestionsLink; ?>';
 LS.plugin.massAction.getQuestionGroupsLink = '<?php echo $getQuestionGroupsLink; ?>';
 LS.plugin.massAction.getTokensLink = '<?php echo $getTokensLink; ?>';

@@ -4,6 +4,7 @@ LS.plugin = LS.plugin || {};
 LS.plugin.massAction = LS.plugin.massAction || {};
 
 $(document).ready(function() {
+
     // Make search case sensitive
     Handsontable.Search.global.setDefaultQueryMethod(function(query, value) {
         if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0)
@@ -126,10 +127,14 @@ $(document).ready(function() {
                 return;
             }
 
+            // At least 1'000 px high.
             var height = $('.side-body').height();
+            height = height < 1000 ? 1000 : height;
+
             var width = $('.side-body').width();
 
-            var hot = new Handsontable(LS.plugin.massAction.container, {
+            var cont = document.getElementById('handsontable');
+            var hot = new Handsontable(cont, {
                 width: width - 100,
                 height: height - 200,
                 data: data.data,
@@ -237,6 +242,4 @@ $(document).ready(function() {
         };
         LS.plugin.massAction.load(links);
     }
-
 });
-
