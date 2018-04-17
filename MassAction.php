@@ -8,9 +8,6 @@
  * @link     -
  */
 
-// Psalm needs this.
-require_once(__DIR__ . '/Column.php');
-
 use \LimeSurvey\Menu\MenuItem;
 
 /**
@@ -46,6 +43,89 @@ class MassAction extends PluginBase
      * @var string
      */
     protected $lsVersion = '2.5';  // Default to 2.5
+
+    /**
+     * @var array[]
+     */
+    protected $columns = [
+        // TODO: hidden?
+        array(
+            'data' => 'tid',
+            'readOnly' => true
+        ),
+        array(
+            'data' => 'participant_id',
+        ),
+        array(
+            'data' => 'firstname',
+        ),
+        array(
+            'data' => 'lastname',
+        ),
+        array(
+            'data' => 'email',
+        ),
+        array(
+            'data' => 'emailstatus',
+        ),
+        array(
+            'data' => 'token',
+        ),
+        array(
+            'data' => 'language',
+        ),
+        array(
+            'data' => 'blacklisted',
+        ),
+        array(
+            'data' => 'sent',
+        ),
+        array(
+            'data' => 'remindersent',
+        ),
+        array(
+            'data' => 'remindercount',
+        ),
+        array(
+            'data' => 'completed',
+        ),
+        array(
+            'data' => 'usesleft',
+        ),
+        array(
+            'data' => 'validfrom',
+        ),
+        array(
+            'data' => 'validuntil',
+        ),
+        array(
+            'data' => 'mpid',
+        )
+    ];
+
+    /**
+     * @var string[]
+     */
+    protected $colWidths = [
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100',
+        '100'
+    ];
+
 
     /**
      * Init stuff
@@ -527,16 +607,20 @@ class MassAction extends PluginBase
 
         foreach ($questions as $question) {
             $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
-            $questionArr = array();
-            foreach ($questionColumns as $column) {
-                $field = $column->data;
-                if (isset($question->$field)) {
-                    $questionArr[$field] = $question->$field;
-                } elseif (isset($attributes[$field])) {
-                    $questionArr[$field] = $attributes[$field];
+            if (is_array($attributes)) {
+                $questionArr = array();
+                foreach ($questionColumns as $column) {
+                    $field = $column->data;
+                    if (isset($question->$field)) {
+                        $questionArr[$field] = $question->$field;
+                    } elseif (isset($attributes[$field])) {
+                        $questionArr[$field] = $attributes[$field];
+                    }
                 }
+                $data[] = $questionArr;
+            } else {
+                throw new Exception('Could not find question attributes.');
             }
-            $data[] = $questionArr;
         }
 
         return json_encode(
@@ -743,123 +827,22 @@ class MassAction extends PluginBase
      */
     protected function tokensToJSON($tokens)
     {
-        // Header
-        $colHeaders = array(
-            gT('TID'),
-            gT('Participant ID'),
-            gT('First name'),
-            gT('Last name'),
-            gT('E-mail'),
-            gT('E-mail status'),
-            gT('Token'),
-            gT('Language'),
-            gT('Blacklisted'),
-            gT('Sent'),
-            gT('Reminder sent'),
-            gT('Reminder count'),
-            gT('Completed'),
-            gT('Uses left'),
-            gT('Valid from'),
-            gT('Valid until'),
-            gT('MPID')
-            // TODO: Attributes here
-        );
-
-        // handsontable needs this information for
-        // readonly option
-        $columns = array(
-            // TODO: hidden?
-            array(
-                'data' => 'tid',
-                'readOnly' => true
-            ),
-            array(
-                'data' => 'participant_id',
-            ),
-            array(
-                'data' => 'firstname',
-            ),
-            array(
-                'data' => 'lastname',
-            ),
-            array(
-                'data' => 'email',
-            ),
-            array(
-                'data' => 'emailstatus',
-            ),
-            array(
-                'data' => 'token',
-            ),
-            array(
-                'data' => 'language',
-            ),
-            array(
-                'data' => 'blacklisted',
-            ),
-            array(
-                'data' => 'sent',
-            ),
-            array(
-                'data' => 'remindersent',
-            ),
-            array(
-                'data' => 'remindercount',
-            ),
-            array(
-                'data' => 'completed',
-            ),
-            array(
-                'data' => 'usesleft',
-            ),
-            array(
-                'data' => 'validfrom',
-            ),
-            array(
-                'data' => 'validuntil',
-            ),
-            array(
-                'data' => 'mpid',
-            )
-        );
-
         $data = array();
 
         foreach ($tokens as $token) {
             $tokenArr = array();
-            foreach ($columns as $column) {
+            foreach ($this->columns as $column) {
                 $field = $column['data'];
                 $tokenArr[$field] = $token->$field;
             }
             $data[] = $tokenArr;
         }
 
-        // Limit width
-        $colWidths = array(
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100',
-            '100'
-        );
-
         return json_encode(
             [
-                'colHeaders' => $colHeaders,
-                'colWidths' => $colWidths,
-                'columns' => $columns,
+                'colHeaders' => $this->getColHeaders(),
+                'colWidths' => $this->colWidths,
+                'columns' => $this->columns,
                 'data' => $data
             ]
         );
@@ -976,151 +959,55 @@ class MassAction extends PluginBase
     private function getQuestionColumns()
     {
         return [
-            new Column(
-                [
-                    'data' => 'qid',
-                    'header' => gT('ID'),
-                    'readonly' => true
-                ]
-            ),
-            new Column(
-                [
-                    'data' => 'gid',
-                    'header' => gT('Group'),
-                    'readonly' => true,
-                    'width' => 50
-                ]
-            ),
-            new Column(
-                [
-                    'data' => 'type',
-                    'header' => gT('Type'),
-                    'readonly' => true,
-                    'width' => 50
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Code'),
-                    'data' => 'title',
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Question'),
-                    'data' => 'question',
-                    'width' => 300,
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Help'),
-                    'data' => 'help',
-                    'width' => 300,
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Mandatory'),
-                    'data'=> 'mandatory',
-                    'width' => 0
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Other'),
-                    'data'=> 'other',
-                    'width' => 50
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Relevance equation'),
-                    'data' => 'relevance',
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Validation'),
-                    'data' => 'preg',
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Randomization group name'),
-                    'data' => 'random_group',
-                    'width' => 200,
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Public statistics'),
-                    'data' => 'public_statistics',
-                    'width' => 150,
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Show graph'),
-                    'data' => 'statistics_showgraph',
-                    'width' => 50,
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Graph type'),
-                    'data' => 'statistics_graphtype',
-                    'width' => 50,
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Random order'),
-                    'data' => 'random_order',
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Hide tip'),
-                    'data' => 'hide_tip',
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Always hidden'),
-                    'data' => 'hidden'
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Max answers'),
-                    'data' => 'max_answers'
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Min answers'),
-                    'data' => 'min_answers'
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Array filter'),
-                    'data' => 'array_filter'
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Array filter excl.'),
-                    'data' => 'array_filter_exclude'
-                ]
-            ),
-            new Column(
-                [
-                    'header' => gT('Question val. eq.'),
-                    'data' => 'em_validation_q'
-                ]
-            ),
+            new Column(['data' => 'qid', 'header' => gT('ID'), 'readonly' => true]),
+            new Column(['data' => 'gid', 'header' => gT('Group'), 'readonly' => true, 'width' => 50]),
+            new Column(['data' => 'type', 'header' => gT('Type'), 'readonly' => true, 'width' => 50]),
+            new Column(['header' => gT('Code'), 'data' => 'title']),
+            new Column(['header' => gT('Question'), 'data' => 'question', 'width' => 300]),
+            new Column(['header' => gT('Help'), 'data' => 'help', 'width' => 300]),
+            new Column(['header' => gT('Mandatory'), 'data'=> 'mandatory', 'width' => 0]),
+            new Column(['header' => gT('Other'), 'data'=> 'other', 'width' => 50]),
+            new Column(['header' => gT('Relevance equation'), 'data' => 'relevance']),
+            new Column(['header' => gT('Validation'), 'data' => 'preg']),
+            new Column(['header' => gT('Randomization group name'), 'data' => 'random_group', 'width' => 200]),
+            new Column(['header' => gT('Public statistics'), 'data' => 'public_statistics', 'width' => 150]),
+            new Column(['header' => gT('Show graph'), 'data' => 'statistics_showgraph', 'width' => 50]),
+            new Column(['header' => gT('Graph type'), 'data' => 'statistics_graphtype', 'width' => 50]),
+            new Column(['header' => gT('Random order'), 'data' => 'random_order']),
+            new Column(['header' => gT('Hide tip'), 'data' => 'hide_tip']),
+            new Column(['header' => gT('Always hidden'), 'data' => 'hidden']),
+            new Column(['header' => gT('Max answers'), 'data' => 'max_answers']),
+            new Column(['header' => gT('Min answers'), 'data' => 'min_answers']),
+            new Column(['header' => gT('Array filter'), 'data' => 'array_filter']),
+            new Column(['header' => gT('Array filter excl.'), 'data' => 'array_filter_exclude']),
+            new Column(['header' => gT('Question val. eq.'), 'data' => 'em_validation_q']),
+        ];
+    }
+
+    /**
+     * @return mixed[] TODO: Why won't type string[] work?
+     */
+    protected function getColHeaders()
+    {
+        return [
+            gT('TID'),
+            gT('Participant ID'),
+            gT('First name'),
+            gT('Last name'),
+            gT('E-mail'),
+            gT('E-mail status'),
+            gT('Token'),
+            gT('Language'),
+            gT('Blacklisted'),
+            gT('Sent'),
+            gT('Reminder sent'),
+            gT('Reminder count'),
+            gT('Completed'),
+            gT('Uses left'),
+            gT('Valid from'),
+            gT('Valid until'),
+            gT('MPID')
+            // TODO: Attributes here
         ];
     }
 }
