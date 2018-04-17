@@ -27,6 +27,7 @@ class Column
     public $data;
 
     /**
+     * @param array $options
      * @return Column
      */
     public function __construct($options)
@@ -40,5 +41,4 @@ class Column
         $this->header = isset($options['header']) ? $options['header'] : $this->header;
         $this->data = $options['data'];
     }
-
 }

@@ -49,58 +49,23 @@ class MassAction extends PluginBase
      */
     protected $columns = [
         // TODO: hidden?
-        array(
-            'data' => 'tid',
-            'readOnly' => true
-        ),
-        array(
-            'data' => 'participant_id',
-        ),
-        array(
-            'data' => 'firstname',
-        ),
-        array(
-            'data' => 'lastname',
-        ),
-        array(
-            'data' => 'email',
-        ),
-        array(
-            'data' => 'emailstatus',
-        ),
-        array(
-            'data' => 'token',
-        ),
-        array(
-            'data' => 'language',
-        ),
-        array(
-            'data' => 'blacklisted',
-        ),
-        array(
-            'data' => 'sent',
-        ),
-        array(
-            'data' => 'remindersent',
-        ),
-        array(
-            'data' => 'remindercount',
-        ),
-        array(
-            'data' => 'completed',
-        ),
-        array(
-            'data' => 'usesleft',
-        ),
-        array(
-            'data' => 'validfrom',
-        ),
-        array(
-            'data' => 'validuntil',
-        ),
-        array(
-            'data' => 'mpid',
-        )
+        array('data' => 'tid', 'readOnly' => true),
+        array('data' => 'participant_id',),
+        array('data' => 'firstname',),
+        array('data' => 'lastname',),
+        array('data' => 'email',),
+        array('data' => 'emailstatus',),
+        array('data' => 'token',),
+        array('data' => 'language',),
+        array('data' => 'blacklisted',),
+        array('data' => 'sent',),
+        array('data' => 'remindersent',),
+        array('data' => 'remindercount',),
+        array('data' => 'completed',),
+        array('data' => 'usesleft',),
+        array('data' => 'validfrom',),
+        array('data' => 'validuntil',),
+        array('data' => 'mpid',)
     ];
 
     /**
@@ -126,7 +91,6 @@ class MassAction extends PluginBase
         '100'
     ];
 
-
     /**
      * Init stuff
      *
@@ -150,7 +114,6 @@ class MassAction extends PluginBase
             // TODO: Because 2.50 > 2.6 in semantic versioning
             $this->subscribe('beforeToolsMenuRender');
             $this->subscribe('newDirectRequest');
-            $this->subscribe('afterQuickMenuLoad');
         } else {
             $this->subscribe('newDirectRequest');
             $this->subscribe('afterSurveyMenuLoad');
@@ -342,53 +305,6 @@ class MassAction extends PluginBase
         }
 
         return $content;
-    }
-
-    /**
-     * @return void
-     */
-    public function afterQuickMenuLoad()
-    {
-        // Do nothing if QuickMenu plugin is not active
-        $quickMenuExistsAndIsActive = $this->api->pluginExists('QuickMenu')
-            && $this->api->pluginIsActive('QuickMenu');
-        if (!$quickMenuExistsAndIsActive) {
-            return;
-        }
-
-        $event = $this->getEvent();
-        //$settings = $this->getPluginSettings(true);
-
-        $data = $event->get('aData');
-        //$activated = $data['activated'];
-        $surveyId = $data['surveyid'];
-
-        $href = Yii::app()->createUrl(
-            'admin/pluginhelper',
-            array(
-                'sa' => 'sidebody',
-                'plugin' => 'MassAction',
-                'method' => 'actionIndex',
-                'surveyId' => $surveyId
-            )
-        );
-
-        $button = new QuickMenuButton(
-            [
-                'name' => 'massAction',
-                'href' => $href,
-                'tooltip' => gT('Mass action'),
-                'iconClass' => 'fa fa-table navbar-brand',
-                'neededPermission' => array('surveycontent', 'update')
-            ]
-        );
-        $userId = Yii::app()->user->getId();
-        $orderings = QuickMenu::getOrder($userId);
-        if (isset($orderings['massAction'])) {
-            $button->setOrder($orderings['massAction']);
-        }
-
-        $event->append('quickMenuItems', array($button));
     }
 
     /**
