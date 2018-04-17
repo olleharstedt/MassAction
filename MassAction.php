@@ -119,7 +119,7 @@ class MassAction extends PluginBase
                 "menu_description" => "MassAction",
                 "menu_icon" => "table",
                 "menu_icon_type" => "fontawesome",
-                "menu_link" => "[admin/]controller/sa/action", //the link will be parsed through yii's createURL method
+                "menu_link" => "admin/pluginhelper/sa/sidebody/plugin/massaction/method/index",
                 "addSurveyId" => true,
                 "addQuestionGroupId" => false,
                 "addQuestionId" => false,
@@ -170,37 +170,6 @@ class MassAction extends PluginBase
                 ),
             )
         );
-    }
-
-    /**
-     * Run before tools menu is rendered
-     *
-     * @return void
-     */
-    public function beforeToolsMenuRender()
-    {
-        $event = $this->getEvent();
-        $surveyId = $event->get('surveyId');
-
-        $href = Yii::app()->createUrl(
-            'admin/pluginhelper',
-            array(
-                'sa' => 'sidebody',
-                'plugin' => 'MassAction',
-                'method' => 'actionIndex',
-                'surveyId' => $surveyId
-            )
-        );
-
-        $menuItem = new MenuItem(
-            array(
-                'label' => gT('Mass action'),
-                'iconClass' => 'fa fa-table',
-                'href' => $href
-            )
-        );
-
-        $event->append('menuItems', array($menuItem));
     }
 
     /**
@@ -330,14 +299,8 @@ class MassAction extends PluginBase
             $surveyId = $request->getParam('surveyId');
             $row = $request->getParam('row');
             $change = $request->getParam('change');
-            $baselang = Survey::model()->findByPk($surveyId)->language;
 
-            $question = Question::model()->findByPk(
-                [
-                    'qid' => $row['qid'],
-                    'language' => $baselang
-                ]
-            );
+            $question = Question::model()->findByPk($row['qid']);
 
             $changedFieldName = $change[1];
             $newValue = $change[3];
@@ -488,11 +451,9 @@ class MassAction extends PluginBase
 
         }
 
-        $baselang = Survey::model()->findByPk($surveyId)->language;
         $questions = Question::model()->findAllByAttributes(
             [
-                'sid' => $surveyId,
-                'language' => $baselang
+                'sid' => $surveyId
             ]
         );
 
@@ -570,13 +531,7 @@ class MassAction extends PluginBase
             );
         }
 
-        $baselang = Survey::model()->findByPk($surveyId)->language;
-        $questionGroups = QuestionGroup::model()->findAllByAttributes(
-            [
-                'sid' => $surveyId,
-                'language' => $baselang
-            ]
-        );
+        $questionGroups = QuestionGroup::model()->findAllByAttributes(['sid' => $surveyId]);
 
         return $this->questionGroupsToJSON($questionGroups);
     }
@@ -672,14 +627,8 @@ class MassAction extends PluginBase
             $surveyId = $request->getParam('surveyId');
             $row = $request->getParam('row');
             $change = $request->getParam('change');
-            $baselang = Survey::model()->findByPk($surveyId)->language;
 
-            $questionGroup = QuestionGroup::model()->findByPk(
-                [
-                    'gid' => $row['gid'],
-                    'language' => $baselang
-                ]
-            );
+            $questionGroup = QuestionGroup::model()->findByPk(['gid' => $row['gid']]);
 
             $changedFieldName = $change[1];
             $newValue = $change[3];
