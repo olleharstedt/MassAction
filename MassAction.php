@@ -125,7 +125,6 @@ class MassAction extends PluginBase
             // then add a link to the plugin settings
             $this->subscribe('beforeSurveySettings');
         }
-
     }
 
     /**
