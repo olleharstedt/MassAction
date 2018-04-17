@@ -98,46 +98,49 @@ class MassAction extends PluginBase
      */
     public function init()
     {
-        $config = include Yii::app()->basePath . '/config/version.php';
-        $this->lsVersion = $config['versionnumber'];
-
-        // Old version schema, 2.06lts
-        // New version schema, like 2.6.x-lts
-        if ($this->lsVersion == '2.06lts'
-            || (strpos($this->lsVersion, 'lts') !== false
-            && strpos($this->lsVersion, '2.6') !== false)
-        ) {
-            $this->subscribe('newDirectRequest');
-            $this->subscribe('afterSurveyMenuLoad');
-        } elseif (floatval($this->lsVersion) >= 2.50) {
-            // TODO: Use another way to compare version, like version_compare?
-            // TODO: Because 2.50 > 2.6 in semantic versioning
-            $this->subscribe('beforeToolsMenuRender');
-            $this->subscribe('newDirectRequest');
-        } else {
-            $this->subscribe('newDirectRequest');
-            $this->subscribe('afterSurveyMenuLoad');
-
-            // To show a warning message when activate
-            $this->subscribe('beforeActivate');
-
-            // We are unsure afterSurveyMenuLoad event,
-            // then add a link to the plugin settings
-            $this->subscribe('beforeSurveySettings');
-        }
+        $this->subscribe('newDirectRequest');
+        $this->subscribe('afterSurveyMenuLoad');
+        $this->subscribe('beforeActivate');
+        $this->subscribe('beforeDeactivate');
     }
 
     /**
      * Run before activation
-     *
      * @return void
      */
     public function beforeActivate()
     {
-        App()->setFlashMessage(
-            gT("Warning : this plugin was not tested with this LimeSurvey version."),
-            "error"
-        );
+        $menu = SurveymenuEntries::model()->findByAttributes(['name' => 'massaction']);
+        if (empty($menu)) {
+            $menuEntry = [
+                "name" => "massaction",
+                "title" => "MassAction",
+                "menu_title" => "MassAction",
+                "menu_description" => "MassAction",
+                "menu_icon" => "table",
+                "menu_icon_type" => "fontawesome",
+                "menu_link" => "[admin/]controller/sa/action", //the link will be parsed through yii's createURL method
+                "addSurveyId" => true,
+                "addQuestionGroupId" => false,
+                "addQuestionId" => false,
+                "linkExternal" => false,
+                "hideOnSurveyState" => null,
+                "manualParams" => ""
+            ];
+            SurveymenuEntries::staticAddMenuEntry(3, $menuEntry);
+        }
+    }
+
+    /**
+     * Remove menu when deactivating.
+     * @return void
+     */
+    public function beforeDeactivate()
+    {
+        $menu = SurveymenuEntries::model()->findByAttributes(['name' => 'massaction']);
+        if (!empty($menu)) {
+            $menu->delete();
+        }
     }
 
     /**
