@@ -127,7 +127,7 @@ class MassAction extends PluginBase
                 "hideOnSurveyState" => null,
                 "manualParams" => ""
             ];
-            $res = SurveymenuEntries::staticAddMenuEntry(4, $menuEntry);
+            SurveymenuEntries::staticAddMenuEntry(4, $menuEntry);
         }
     }
 
