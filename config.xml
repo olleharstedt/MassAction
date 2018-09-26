@@ -15,5 +15,10 @@
     <compatibility>
         <version>4.0</version>
     </compatibility>
+
+    <updater>
+        <type>rest</type>
+        <source>https://comfortupdate.limesurvey.org</source>
+    </updater>
 </config>
 
