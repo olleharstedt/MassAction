@@ -17,8 +17,13 @@
     </compatibility>
 
     <updater>
-        <type>rest</type>
-        <source>https://comfortupdate.limesurvey.org</source>
+        <stable>
+            <type>rest</type>
+            <source>https://comfortupdate.limesurvey.org</source>
+        </stable>
+        <unstable>
+            <type>git</type>
+            <source>https://github.com/myrepo/myrepo</source>
+        </unstable>
     </updater>
 </config>
-
