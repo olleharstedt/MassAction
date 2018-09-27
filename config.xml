@@ -16,14 +16,16 @@
         <version>4.0</version>
     </compatibility>
 
-    <updater>
-        <stable>
+    <updaters>
+        <updater>
+            <stable>1</stable>
             <type>rest</type>
             <source>https://comfortupdate.limesurvey.org</source>
-        </stable>
-        <unstable>
+        </updater>
+        <updater>
+            <stable>0</stable>
             <type>git</type>
             <source>https://github.com/myrepo/myrepo</source>
-        </unstable>
-    </updater>
+        </updater>
+    </updaters>
 </config>
