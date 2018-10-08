@@ -21,7 +21,7 @@
         <updater>
             <stable>1</stable>
             <type>rest</type>
-            <source>https://comfortupdate.limesurvey.org/index.php?r=limeshoprest</source>
+            <source>https://comfortupdate.limesurvey.org/index.php?r=limestorerest</source>
         </updater>
         <updater>
             <stable>0</stable>
