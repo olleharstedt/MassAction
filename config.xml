@@ -8,6 +8,7 @@
         <author>Olle Haerstedt</author>
         <authorUrl>https://www.limesurvey.org</authorUrl>
         <version>1.0.0</version>
+        <lastSecurityUpdate>1.0.0</lastSecurityUpdate>
         <license>GNU General Public License version 2 or later</license>
         <description><![CDATA[Edit multiple relevance equations in one page.]]></description>
     </metadata>
@@ -20,7 +21,7 @@
         <updater>
             <stable>1</stable>
             <type>rest</type>
-            <source>https://comfortupdate.limesurvey.org</source>
+            <source>https://comfortupdate.limesurvey.org/index.php?r=limeshoprest</source>
         </updater>
         <updater>
             <stable>0</stable>
