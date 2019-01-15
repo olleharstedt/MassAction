@@ -6,8 +6,9 @@
         <creationDate>2017-03-28</creationDate>
         <lastUpdate>2018-01-24</lastUpdate>
         <author>Olle Haerstedt</author>
-        <authorUrl>https://www.limesurvey.org</authorUrl>
-        <version>1.0.0</version>
+        <authorUrl>https://github.com/olleharstedt</authorUrl>
+        <supportUrl>https://github.com/olleharstedt/MassAction/issues</supportUrl>
+        <version>1.0.3</version>
         <lastSecurityUpdate>1.0.0</lastSecurityUpdate>
         <license>GNU General Public License version 2 or later</license>
         <description><![CDATA[Edit multiple relevance equations in one page.]]></description>
