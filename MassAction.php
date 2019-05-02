@@ -325,7 +325,7 @@ class MassAction extends PluginBase
             // Question field
             if (isset($question->$changedFieldName)) {
                 $question->$changedFieldName = $newValue;
-            } elseif (isset($attributes->$changedFieldName)) {
+            } elseif (isset($attributes[$changedFieldName])) {
                 // Question attribute (lime_question_attributes table)
                 $attribute = QuestionAttribute::model()->findByAttributes(
                     [
