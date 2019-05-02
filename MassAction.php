@@ -304,8 +304,14 @@ class MassAction extends PluginBase
             $surveyId = $request->getParam('surveyId');
             $row = $request->getParam('row');
             $change = $request->getParam('change');
+            $baselang = Survey::model()->findByPk($surveyId)->language;
 
-            $question = Question::model()->findByPk(['qid' => $row['qid']]);
+            $question = Question::model()->findByPk(
+                [
+                    'qid' => $row['qid'],
+                    'language' => $baselang
+                ]
+            );
 
             if (empty($question)) {
                 throw new \Exception('Could not find a question with qid ' . json_encode($row['qid']));
@@ -636,8 +642,14 @@ class MassAction extends PluginBase
             $surveyId = $request->getParam('surveyId');
             $row = $request->getParam('row');
             $change = $request->getParam('change');
+            $baselang = Survey::model()->findByPk($surveyId)->language;
 
-            $questionGroup = QuestionGroup::model()->findByPk(['gid' => $row['gid']]);
+            $questionGroup = QuestionGroup::model()->findByPk(
+                [
+                    'gid' => $row['gid'],
+                    'language' => $baselang
+                ]
+            );
 
             $changedFieldName = $change[1];
             $newValue = $change[3];
