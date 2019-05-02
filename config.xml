@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <metadata>
-        <name>MassAction</name>
+        <name>MassActionLS3</name>
         <type>plugin</type>
         <creationDate>2017-03-28</creationDate>
-        <lastUpdate>2018-01-24</lastUpdate>
+        <lastUpdate>2019-01-24</lastUpdate>
         <author>Olle Haerstedt</author>
         <authorUrl>https://github.com/olleharstedt</authorUrl>
         <supportUrl>https://github.com/olleharstedt/MassAction/issues</supportUrl>
-        <version>1.0.3</version>
+        <version>1.0.4</version>
         <lastSecurityUpdate>1.0.0</lastSecurityUpdate>
         <license>GNU General Public License version 2 or later</license>
         <description><![CDATA[Edit multiple relevance equations in one page.]]></description>
     </metadata>
 
     <compatibility>
-        <version>4.0</version>
+        <version>3.0</version>
     </compatibility>
 
     <updaters>
