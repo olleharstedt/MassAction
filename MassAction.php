@@ -102,6 +102,7 @@ class MassAction extends PluginBase
         $this->subscribe('afterSurveyMenuLoad');
         $this->subscribe('beforeActivate');
         $this->subscribe('beforeDeactivate');
+        //$this->subscribe('beforeToolsMenuRender');  // For LS 3.
     }
 
     /**
@@ -304,7 +305,11 @@ class MassAction extends PluginBase
             $row = $request->getParam('row');
             $change = $request->getParam('change');
 
-            $question = Question::model()->findByPk($row['qid']);
+            $question = Question::model()->findByPk(['qid' => $row['qid']]);
+
+            if (empty($question)) {
+                throw new \Exception('Could not find a question with qid ' . json_encode($row['qid']));
+            }
 
             $changedFieldName = $change[1];
             $newValue = $change[3];
@@ -795,6 +800,38 @@ class MassAction extends PluginBase
             }
         }
     }
+
+    /**
+     * Run before tools menu is rendered
+     *
+     * @return void
+     */
+    public function beforeToolsMenuRender()
+    {
+        $event = $this->getEvent();
+        $surveyId = $event->get('surveyId');
+
+        $href = Yii::app()->createUrl(
+            'admin/pluginhelper',
+            array(
+                'sa' => 'sidebody',
+                'plugin' => 'MassAction',
+                'method' => 'actionIndex',
+                'surveyId' => $surveyId
+            )
+        );
+
+        $menuItem = new MenuItem(
+            array(
+                'label' => gT('Mass action'),
+                'iconClass' => 'fa fa-table',
+                'href' => $href
+            )
+        );
+
+        $event->append('menuItems', array($menuItem));
+    }
+
 
     /**
      * @return Column[]
