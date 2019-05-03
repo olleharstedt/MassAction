@@ -102,7 +102,7 @@ class MassAction extends PluginBase
         $this->subscribe('afterSurveyMenuLoad');
         $this->subscribe('beforeActivate');
         $this->subscribe('beforeDeactivate');
-        //$this->subscribe('beforeToolsMenuRender');  // For LS 3.
+        $this->subscribe('beforeToolsMenuRender');
     }
 
     /**
