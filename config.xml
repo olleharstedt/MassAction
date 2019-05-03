@@ -8,7 +8,7 @@
         <author>Olle Haerstedt</author>
         <authorUrl>https://github.com/olleharstedt</authorUrl>
         <supportUrl>https://github.com/olleharstedt/MassAction/issues</supportUrl>
-        <version>1.0.4</version>
+        <version>1.0.5</version>
         <lastSecurityUpdate>1.0.0</lastSecurityUpdate>
         <license>GNU General Public License version 2 or later</license>
         <description><![CDATA[Edit multiple relevance equations in one page.]]></description>
