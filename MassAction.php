@@ -99,36 +99,8 @@ class MassAction extends PluginBase
     public function init()
     {
         $this->subscribe('newDirectRequest');
-        $this->subscribe('beforeActivate');
         $this->subscribe('beforeDeactivate');
         $this->subscribe('beforeToolsMenuRender');
-    }
-
-    /**
-     * Run before activation
-     * @return void
-     */
-    public function beforeActivate()
-    {
-        $menu = SurveymenuEntries::model()->findByAttributes(['name' => 'massaction']);
-        if (empty($menu)) {
-            $menuEntry = [
-                "name" => "massaction",
-                "title" => "MassAction",
-                "menu_title" => "MassAction",
-                "menu_description" => "MassAction",
-                "menu_icon" => "table",
-                "menu_icon_type" => "fontawesome",
-                "menu_link" => "admin/pluginhelper/sa/sidebody/plugin/massaction/method/actionIndex",
-                "addSurveyId" => true,
-                "addQuestionGroupId" => false,
-                "addQuestionId" => false,
-                "linkExternal" => false,
-                "hideOnSurveyState" => null,
-                "manualParams" => ""
-            ];
-            SurveymenuEntries::staticAddMenuEntry(4, $menuEntry);
-        }
     }
 
     /**
