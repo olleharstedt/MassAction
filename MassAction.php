@@ -819,6 +819,7 @@ class MassAction extends PluginBase
             new Column(['header' => gT('Mandatory'), 'data'=> 'mandatory', 'width' => 0]),
             new Column(['header' => gT('Other'), 'data'=> 'other', 'width' => 50]),
             new Column(['header' => gT('Relevance equation'), 'data' => 'relevance']),
+            new Column(['header' => gT('Sort order'), 'data' => 'question_order']),
             new Column(['header' => gT('Validation'), 'data' => 'preg']),
             new Column(['header' => gT('Randomization group name'), 'data' => 'random_group', 'width' => 200]),
             new Column(['header' => gT('Public statistics'), 'data' => 'public_statistics', 'width' => 150]),
