@@ -99,10 +99,9 @@ class MassAction extends PluginBase
     public function init()
     {
         $this->subscribe('newDirectRequest');
-        $this->subscribe('afterSurveyMenuLoad');
         $this->subscribe('beforeActivate');
         $this->subscribe('beforeDeactivate');
-        //$this->subscribe('beforeToolsMenuRender');  // For LS 3.
+        $this->subscribe('beforeToolsMenuRender');
     }
 
     /**
