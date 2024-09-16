@@ -284,11 +284,9 @@ class MassAction extends PluginBase
             }
 
             $changedFieldName = $change[1];
-            $column = $this->findQuestionColumnInfo($changedFieldName);
+            $column = $this->findQuestionColumnInfo($this->getQuestionColumns(), $changedFieldName);
             $baselang = $survey->language;
-            error_log($changedFieldName);
             $newValue = $change[3];
-            error_log($newValue);
 
             $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
 
@@ -362,33 +360,6 @@ class MassAction extends PluginBase
                 'message' => 'Impossibru!'
             ]
         );
-    }
-
-    /**
-     * Same as above.
-     * @param object $questionGroup
-     * @param string $fieldName - The name of the database field to update
-     * @param mixed $value
-     * @return void
-     */
-    protected function saveQuestionGroupForAllLanguages($questionGroup, $fieldName, $value)
-    {
-        $localizedFields = array(
-            'group_name',
-            'description'
-        );
-
-        if (!in_array($fieldName, $localizedFields)) {
-            // Save in all languages
-            Yii::app()->db->createCommand()->update(
-                '{{groups}}',
-                array("$fieldName" => $value),
-                'gid = :gid',
-                array(':gid' => $questionGroup->gid)
-            );
-        } else {
-            // Localized field, don't save
-        }
     }
 
     /**
@@ -482,6 +453,7 @@ class MassAction extends PluginBase
     public function getQuestionGroups(LSHttpRequest $request)
     {
         $surveyId = $request->getParam('surveyId');
+        $survey = Survey::model()->findByPk($surveyId);
 
         // Check read permission
         if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read')) {
@@ -495,62 +467,41 @@ class MassAction extends PluginBase
 
         $questionGroups = QuestionGroup::model()->findAllByAttributes(['sid' => $surveyId]);
 
-        return $this->questionGroupsToJSON($questionGroups);
+        return $this->questionGroupsToJSON($questionGroups, $survey);
     }
 
     /**
      * @param QuestionGroup[] $questionGroups
      * @return string JSON
      */
-    protected function questionGroupsToJSON($questionGroups)
+    protected function questionGroupsToJSON($questionGroups, Survey $survey)
     {
-        // Header
-        $colHeaders = array(
-            gT('GID'),
-            gT('Title'),
-            gT('Description'),
-            gT('Randomization group'),
-            gT('Relevance equation'),
-        );
-
-        // handsontable needs this information for
-        // readonly option
-        $columns = array(
-            // TODO: hidden?
-            array(
-                'data' => 'gid',
-                'readOnly' => true
-            ),
-            array(
-                'data' => 'group_name',
-            ),
-            array(
-                'data' => 'description',
-            ),
-            array(
-                'data' => 'randomization_group',
-            ),
-            array(
-                'data' => 'grelevance',
-            )
-        );
+        /** @var Column[] */
+        $columns = $this->getQuestionGroupColumns();
 
         // Limit width
-        $colWidths = array(
-            '100',
-            '100',
-            '300',
-            '100',
-            '100'
-        );
+        $colWidths = [];
+        // Header
+        $colHeaders = [];
 
-        $data = array();
+        foreach ($columns as $column) {
+            $colWidths[] = $column->width;
+            $colHeaders[] = $column->header;
+        }
+
+        $baselang = $survey->language;
+        $data = [];
 
         foreach ($questionGroups as $questionGroup) {
             $groupArr = array();
             foreach ($columns as $column) {
-                $field = $column['data'];
-                $groupArr[$field] = $questionGroup->$field;
+                $field = $column->data;
+                if ($column->localized) {
+                    $table = $column->localized;
+                    $groupArr[$field] = $questionGroup->$table[$baselang]->$field;
+                } else {
+                    $groupArr[$field] = $questionGroup->$field;
+                }
             }
             $data[] = $groupArr;
         }
@@ -587,17 +538,26 @@ class MassAction extends PluginBase
 
         try {
             $surveyId = $request->getParam('surveyId');
+            $survey = Survey::model()->findByPk($surveyId);
+            $baselang = $survey->language;
             $row = $request->getParam('row');
             $change = $request->getParam('change');
 
             $questionGroup = QuestionGroup::model()->findByPk(['gid' => $row['gid']]);
 
             $changedFieldName = $change[1];
+            $column = $this->findQuestionColumnInfo($this->getQuestionGroupColumns(), $changedFieldName);
             $newValue = $change[3];
 
-            $questionGroup->$changedFieldName = $newValue;
+            if ($column->localized) {
+                $table = $column->localized;
+                $l10n = $questionGroup->$table[$baselang];
+                $l10n->$changedFieldName = $newValue;
+                $l10n->save();
+            } else {
+                $questionGroup->$changedFieldName = $newValue;
+            }
             $questionGroup->save();
-            $this->saveQuestionGroupForAllLanguages($questionGroup, $changedFieldName, $newValue);
 
             // All well!
             return json_encode(array('result' => 'success'));
@@ -819,12 +779,25 @@ class MassAction extends PluginBase
     }
 
     /**
+     * @return Column[]
+     */
+    private function getQuestionGroupColumns()
+    {
+        return [
+            new Column(['data' => 'gid', 'header' => gT('GID'), 'readonly' => true, 'width' => 50]),
+            new Column(['header' => gT('Title'), 'data' => 'group_name', 'width' => 300, 'localized' => 'questiongroupl10ns']),
+            new Column(['header' => gT('Description'), 'data' => 'description', 'width' => 300, 'localized' => 'questiongroupl10ns']),
+            new Column(['header' => gT('Relevance equation'), 'data' => 'grelevance']),
+            new Column(['header' => gT('Randomization group'), 'data' => 'randomization_group']),
+        ];
+    }
+
+    /**
      * @param string $changedFieldName
      * @return ?Column
      */
-    private function findQuestionColumnInfo(string $changedFieldName)
+    private function findQuestionColumnInfo(array $columns, string $changedFieldName)
     {
-        $columns = $this->getQuestionColumns();
         foreach ($columns as $column) {
             if ($changedFieldName == $column->data) {
                 return $column;
