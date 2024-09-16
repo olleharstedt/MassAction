@@ -4,20 +4,20 @@
         <h3>Mass action</h3>
 
         <!-- Load buttons -->
-        <div class='btn btn-default' onclick='LS.plugin.massAction.loadQuestions();'>Load questions</div>
-        <div class='btn btn-default' onclick='LS.plugin.massAction.loadQuestionGroups();'>Load question groups</div>
-        <div class='btn btn-default' onclick='LS.plugin.massAction.loadTokens();'>Load tokens</div>
+        <div class='btn btn-outline-secondary' onclick='LS.plugin.massAction.loadQuestions();'>Load questions</div>
+        <div class='btn btn-outline-secondary' onclick='LS.plugin.massAction.loadQuestionGroups();'>Load question groups</div>
+        <div class='btn btn-outline-secondary' onclick='LS.plugin.massAction.loadTokens();'>Load tokens</div>
 
         <!-- Save spinner -->
-        <div id='mass-action-saving' class='hide' style='display: inline-block;'><span class='fa fa-spinner fa-spin'></span>&nbsp;Saving data...</div>
-        <div id='mass-action-saving-done' class='hide' style='display: inline-block;'><span class='fa fa-check'></span>&nbsp;All changes saved</div>
-        <div id='mass-action-saving-error' class='hide' style='display: inline-block;'><span class='fa fa-exclamation'></span>&nbsp;<span id='mass-action-error-message'></span></div>
+        <div id='mass-action-saving' class='d-none' style='display: inline-block;'><span class='fa fa-spinner fa-spin'></span>&nbsp;Saving data...</div>
+        <div id='mass-action-saving-done' class='d-none' style='display: inline-block;'><span class='fa fa-check'></span>&nbsp;All changes saved</div>
+        <div id='mass-action-saving-error' class='d-none' style='display: inline-block;'><span class='fa fa-exclamation'></span>&nbsp;<span id='mass-action-error-message'></span></div>
 
         <p></p> <!-- Some margin -->
 
         <input id='mass-action-search-field' name='mass-action-search-field' class='form-control width-20' value='' type='text' placeholder="Search" />
         <input id='mass-action-replace-field' name='mass-action-replace-field' class='form-control width-20' value='' type='text' placeholder="Replace" />
-        <button id='mass-action-replace-button' name='mass-action-replace-button' class='btn btn-default'>Replace all</button>
+        <button id='mass-action-replace-button' name='mass-action-replace-button' class='btn btn-outline-secondary'>Replace all</button>
 
         <p></p> <!-- Some margin -->
 

@@ -43,7 +43,7 @@ $(document).ready(function() {
             return;
         }
 
-        $('#mass-action-saving').removeClass('hide');
+        $('#mass-action-saving').removeClass('d-none');
 
         var change = change[0];  // Only one change
         var rowNumber = change[0];
@@ -69,12 +69,12 @@ $(document).ready(function() {
                 YII_CSRF_TOKEN: csrfToken
             }
         }).done(function(response) {
-            $('#mass-action-saving').addClass('hide');
+            $('#mass-action-saving').addClass('d-none');
             var data = JSON.parse(response);
 
             if (data.result == 'success')
             {
-                $('#mass-action-saving-done').removeClass('hide');
+                $('#mass-action-saving-done').removeClass('d-none');
                 $('#mass-action-saving-done').show();
                 clearTimeout(LS.plugin.massAction.t);
                 LS.plugin.massAction.t = setTimeout(function() {
@@ -84,7 +84,7 @@ $(document).ready(function() {
             else if(data.result == 'error')
             {
                 $('#mass-action-error-message').html(data.message);
-                $('#mass-action-saving-error').removeClass('hide');
+                $('#mass-action-saving-error').removeClass('d-none');
                 $('#mass-action-saving-error').show();
                 clearTimeout(LS.plugin.massAction.t);
                 LS.plugin.massAction.t = setTimeout(function() {
@@ -118,7 +118,7 @@ $(document).ready(function() {
             if (data.result == 'error')
             {
                 $('#mass-action-error-message').html(data.message);
-                $('#mass-action-saving-error').removeClass('hide');
+                $('#mass-action-saving-error').removeClass('d-none');
                 $('#mass-action-saving-error').show();
                 clearTimeout(LS.plugin.massAction.t);
                 LS.plugin.massAction.t = setTimeout(function() {

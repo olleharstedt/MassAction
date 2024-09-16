@@ -273,6 +273,7 @@ class MassAction extends PluginBase
 
         try {
             $surveyId = $request->getParam('surveyId');
+            $survey = Survey::model()->findByPk($surveyId);
             $row = $request->getParam('row');
             $change = $request->getParam('change');
 
@@ -283,12 +284,21 @@ class MassAction extends PluginBase
             }
 
             $changedFieldName = $change[1];
+            $column = $this->findQuestionColumnInfo($changedFieldName);
+            $baselang = $survey->language;
+            error_log($changedFieldName);
             $newValue = $change[3];
+            error_log($newValue);
 
             $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
 
             // Question field
-            if (isset($question->$changedFieldName)) {
+            if ($column->localized) {
+                $table = $column->localized;
+                $questionl10n = $question->$table[$baselang];
+                $questionl10n->$changedFieldName = $newValue;
+                $questionl10n->save();
+            } elseif (isset($question->$changedFieldName)) {
                 $question->$changedFieldName = $newValue;
             } elseif (isset($attributes->$changedFieldName)) {
                 // Question attribute (lime_question_attributes table)
@@ -332,7 +342,6 @@ class MassAction extends PluginBase
             }
 
             $question->save();
-            $this->saveQuestionForAllLanguages($question, $changedFieldName, $newValue);
 
             // All well!
             return json_encode(array('result' => 'success'));
@@ -353,36 +362,6 @@ class MassAction extends PluginBase
                 'message' => 'Impossibru!'
             ]
         );
-    }
-
-    /**
-     * Some question attributes are localized, some are not. Since the database
-     * is not normalized with regard to this, we need to manually update
-     * all language version of the question.
-     *
-     * @param object $question
-     * @param string $fieldName - The name of the database field to update
-     * @param mixed $value
-     * @return void
-     */
-    protected function saveQuestionForAllLanguages($question, $fieldName, $value)
-    {
-        $localizedFields = array(
-            'question',
-            'help'
-        );
-
-        if (!in_array($fieldName, $localizedFields)) {
-            // Save in all languages
-            Yii::app()->db->createCommand()->update(
-                '{{questions}}',
-                array("$fieldName" => $value),
-                'qid = :qid',
-                array(':qid' => $question->qid)
-            );
-        } else {
-            // Localized field, don't save
-        }
     }
 
     /**
@@ -431,13 +410,11 @@ class MassAction extends PluginBase
 
         }
 
-        $questions = Question::model()->findAllByAttributes(
-            [
-                'sid' => $surveyId
-            ]
-        );
+        $survey = Survey::model()->findByPk($surveyId);
 
-        return $this->questionsToJSON($questions);
+        $questions = Question::model()->findAllByAttributes(['sid' => $surveyId]);
+
+        return $this->questionsToJSON($questions, $survey);
     }
 
     /**
@@ -447,13 +424,14 @@ class MassAction extends PluginBase
      * @param Question[] $questions
      * @return string
      */
-    protected function questionsToJSON(array $questions)
+    protected function questionsToJSON(array $questions, Survey $survey)
     {
         $data = array();
         $colWidths = array();
         $colHeaders = array();
         $columns = array();
         $questionColumns = $this->getQuestionColumns();
+        $baselang = $survey->language;
 
         foreach ($questionColumns as $column) {
             $colWidths[] = $column->width;
@@ -470,7 +448,11 @@ class MassAction extends PluginBase
                 $questionArr = array();
                 foreach ($questionColumns as $column) {
                     $field = $column->data;
-                    if (isset($question->$field)) {
+                    if ($column->localized) {
+                        $table = $column->localized;
+                        $questionArr[$field] = $question->$table[$baselang]->$field;
+                    }
+                    else if (isset($question->$field)) {
                         $questionArr[$field] = $question->$field;
                     } elseif (isset($attributes[$field])) {
                         $questionArr[$field] = $attributes[$field];
@@ -814,8 +796,8 @@ class MassAction extends PluginBase
             new Column(['data' => 'gid', 'header' => gT('Group'), 'readonly' => true, 'width' => 50]),
             new Column(['data' => 'type', 'header' => gT('Type'), 'readonly' => true, 'width' => 50]),
             new Column(['header' => gT('Code'), 'data' => 'title']),
-            new Column(['header' => gT('Question'), 'data' => 'question', 'width' => 300]),
-            new Column(['header' => gT('Help'), 'data' => 'help', 'width' => 300]),
+            new Column(['header' => gT('Question'), 'data' => 'question', 'width' => 300, 'localized' => 'questionl10ns']),
+            new Column(['header' => gT('Help'), 'data' => 'help', 'width' => 300, 'localized' => 'questionl10ns']),
             new Column(['header' => gT('Mandatory'), 'data'=> 'mandatory', 'width' => 0]),
             new Column(['header' => gT('Other'), 'data'=> 'other', 'width' => 50]),
             new Column(['header' => gT('Relevance equation'), 'data' => 'relevance']),
@@ -834,6 +816,21 @@ class MassAction extends PluginBase
             new Column(['header' => gT('Array filter excl.'), 'data' => 'array_filter_exclude']),
             new Column(['header' => gT('Question val. eq.'), 'data' => 'em_validation_q']),
         ];
+    }
+
+    /**
+     * @param string $changedFieldName
+     * @return ?Column
+     */
+    private function findQuestionColumnInfo(string $changedFieldName)
+    {
+        $columns = $this->getQuestionColumns();
+        foreach ($columns as $column) {
+            if ($changedFieldName == $column->data) {
+                return $column;
+            }
+        }
+        return null;
     }
 
     /**

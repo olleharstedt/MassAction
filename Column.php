@@ -27,6 +27,12 @@ class Column
     public $data;
 
     /**
+     * Either questionl10ns or groupl10ns or null
+     * @var ?string
+     */
+    public $localized;
+
+    /**
      * @param array $options
      * @return Column
      */
@@ -39,6 +45,9 @@ class Column
         $this->width = isset($options['width']) ? $options['width'] : $this->width;
         $this->readonly = isset($options['readonly']) ? $options['readonly'] : $this->readonly;
         $this->header = isset($options['header']) ? $options['header'] : $this->header;
+        if (isset($options['localized'])) {
+            $this->localized = $options['localized'];
+        }
         $this->data = $options['data'];
     }
 }
