@@ -4,7 +4,7 @@
         <name>MassAction</name>
         <type>plugin</type>
         <creationDate>2017-03-28</creationDate>
-        <lastUpdate>2018-01-24</lastUpdate>
+        <lastUpdate>2024-09-16</lastUpdate>
         <author>Olle Haerstedt</author>
         <authorUrl>https://github.com/olleharstedt</authorUrl>
         <supportUrl>https://github.com/olleharstedt/MassAction/issues</supportUrl>
@@ -15,8 +15,7 @@
     </metadata>
 
     <compatibility>
-        <version>4.0</version>
-        <version>5.0</version>
+        <version>6.0</version>
     </compatibility>
 
     <updaters>
