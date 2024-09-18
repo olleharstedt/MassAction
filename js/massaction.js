@@ -7,13 +7,11 @@ $(document).ready(function() {
 
     // Make search case sensitive
     Handsontable.Search.global.setDefaultQueryMethod(function(query, value) {
-        if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0)
-        {
+        if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0) {
             return false;
         }
 
-        if (value === null || value === undefined)
-        {
+        if (value === null || value === undefined) {
             return false;
         }
 
@@ -115,6 +113,7 @@ $(document).ready(function() {
         }).done(function(data) {
 
             var data = JSON.parse(data);
+            console.log('data', data);
 
             if (data.result == 'error') {
                 $('#mass-action-error-message').html(data.message);

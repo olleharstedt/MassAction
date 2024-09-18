@@ -306,7 +306,6 @@ class MassAction extends PluginBase
             }
 
             $changedFieldName = $change[1];
-            error_log($changedFieldName);
             $column = $this->findQuestionColumnInfo(
                 array_merge(
                     $this->getQuestionColumns(),
@@ -315,7 +314,6 @@ class MassAction extends PluginBase
                 $changedFieldName
             );
             $newValue = $change[3];
-            error_log($newValue);
 
             $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
 
@@ -460,7 +458,7 @@ class MassAction extends PluginBase
             $colHeaders[] = $column->header;
             $columns[] = array(
                 'data' => $column->data,
-                'readonly' => $column->readonly
+                'readOnly' => $column->readonly
             );
         }
 
@@ -504,7 +502,7 @@ class MassAction extends PluginBase
             $colHeaders[] = $column->header;
             $columns[] = array(
                 'data' => $column->data,
-                'readonly' => $column->readonly
+                'readOnly' => $column->readonly
             );
         }
 
@@ -590,16 +588,19 @@ class MassAction extends PluginBase
     protected function localizedQuestionGroupsToJSON($questionGroups, Survey $survey)
     {
         /** @var Column[] */
-        $columns = $this->getLocalizedQuestionGroupColumns();
+        $groupColumns = $this->getLocalizedQuestionGroupColumns();
 
-        // Limit width
         $colWidths = [];
-        // Header
         $colHeaders = [];
+        $columns = [];
 
-        foreach ($columns as $column) {
+        foreach ($groupColumns as $column) {
             $colWidths[] = $column->width;
             $colHeaders[] = $column->header;
+            $columns[] = array(
+                'data' => $column->data,
+                'readOnly' => $column->readonly
+            );
         }
 
         $langs = array_merge(
@@ -611,7 +612,7 @@ class MassAction extends PluginBase
         foreach ($questionGroups as $questionGroup) {
             foreach ($langs as $lang) {
                 $groupArr = array();
-                foreach ($columns as $column) {
+                foreach ($groupColumns as $column) {
                     $field = $column->data;
                     if ($column->localized) {
                         $table = $column->localized;
@@ -641,16 +642,19 @@ class MassAction extends PluginBase
     protected function questionGroupsToJSON($questionGroups, Survey $survey)
     {
         /** @var Column[] */
-        $columns = $this->getQuestionGroupColumns();
+        $groupColumns = $this->getQuestionGroupColumns();
 
-        // Limit width
         $colWidths = [];
-        // Header
         $colHeaders = [];
+        $columns = [];
 
-        foreach ($columns as $column) {
+        foreach ($groupColumns as $column) {
             $colWidths[] = $column->width;
             $colHeaders[] = $column->header;
+            $columns[] = array(
+                'data' => $column->data,
+                'readOnly' => $column->readonly
+            );
         }
 
         $baselang = $survey->language;
@@ -658,7 +662,7 @@ class MassAction extends PluginBase
 
         foreach ($questionGroups as $questionGroup) {
             $groupArr = array();
-            foreach ($columns as $column) {
+            foreach ($groupColumns as $column) {
                 $field = $column->data;
                 if ($column->localized) {
                     $table = $column->localized;
