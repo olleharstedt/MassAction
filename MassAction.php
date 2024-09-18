@@ -186,11 +186,20 @@ class MassAction extends PluginBase
             )
         );
 
-        $getQuestionGroupsLink = Yii::app()->createUrl(
+        $getQuestionGroupTextsLink = Yii::app()->createUrl(
             'plugins/direct',
             array(
                 'plugin' => 'MassAction',
-                'function' => 'getQuestionGroups',
+                'function' => 'getQuestionGroupTexts',
+                'surveyId' => $surveyId
+            )
+        );
+
+        $getQuestionGroupAttributesLink = Yii::app()->createUrl(
+            'plugins/direct',
+            array(
+                'plugin' => 'MassAction',
+                'function' => 'getQuestionGroupAttributes',
                 'surveyId' => $surveyId
             )
         );
@@ -226,7 +235,8 @@ class MassAction extends PluginBase
         $data['surveyId'] = $surveyId;
         $data['getQuestionTextsLink'] = $getQuestionTextsLink;
         $data['getQuestionAttributesLink'] = $getQuestionAttributesLink;
-        $data['getQuestionGroupsLink'] = $getQuestionGroupsLink;
+        $data['getQuestionGroupTextsLink'] = $getQuestionGroupTextsLink;
+        $data['getQuestionGroupAttributesLink'] = $getQuestionGroupAttributesLink;
         $data['getTokensLink'] = $getTokensLink;
         $data['saveQuestionChangeLink'] = $saveQuestionChangeLink;
         $data['saveQuestionGroupChangeLink'] = $saveQuestionGroupChangeLink;
@@ -284,6 +294,7 @@ class MassAction extends PluginBase
 
         try {
             $surveyId = $request->getParam('surveyId');
+            $lang = $request->getParam('lang');
             $survey = Survey::model()->findByPk($surveyId);
             $row = $request->getParam('row');
             $change = $request->getParam('change');
@@ -295,16 +306,23 @@ class MassAction extends PluginBase
             }
 
             $changedFieldName = $change[1];
-            $column = $this->findQuestionColumnInfo($this->getQuestionColumns(), $changedFieldName);
-            $baselang = $survey->language;
+            error_log($changedFieldName);
+            $column = $this->findQuestionColumnInfo(
+                array_merge(
+                    $this->getQuestionColumns(),
+                    $this->getLocalizedQuestionColumns()
+                ),
+                $changedFieldName
+            );
             $newValue = $change[3];
+            error_log($newValue);
 
             $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
 
             // Question field
             if ($column->localized) {
                 $table = $column->localized;
-                $questionl10n = $question->$table[$baselang];
+                $questionl10n = $question->$table[$lang];
                 $questionl10n->$changedFieldName = $newValue;
                 $questionl10n->save();
             } elseif (isset($question->$changedFieldName)) {
@@ -523,10 +541,33 @@ class MassAction extends PluginBase
     }
 
     /**
+     *
+     */
+    public function getQuestionGroupTexts(LSHttpRequest $request)
+    {
+        $surveyId = $request->getParam('surveyId');
+        $survey = Survey::model()->findByPk($surveyId);
+
+        // Check read permission
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read')) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "You don't have access to read survey content"
+                ]
+            );
+        }
+
+        $questionGroups = QuestionGroup::model()->findAllByAttributes(['sid' => $surveyId]);
+
+        return $this->localizedQuestionGroupsToJSON($questionGroups, $survey);
+    }
+
+    /**
      * @param LSHttpRequest $request
      * @return string JSON
      */
-    public function getQuestionGroups(LSHttpRequest $request)
+    public function getQuestionGroupAttributes(LSHttpRequest $request)
     {
         $surveyId = $request->getParam('surveyId');
         $survey = Survey::model()->findByPk($surveyId);
@@ -544,6 +585,53 @@ class MassAction extends PluginBase
         $questionGroups = QuestionGroup::model()->findAllByAttributes(['sid' => $surveyId]);
 
         return $this->questionGroupsToJSON($questionGroups, $survey);
+    }
+
+    protected function localizedQuestionGroupsToJSON($questionGroups, Survey $survey)
+    {
+        /** @var Column[] */
+        $columns = $this->getLocalizedQuestionGroupColumns();
+
+        // Limit width
+        $colWidths = [];
+        // Header
+        $colHeaders = [];
+
+        foreach ($columns as $column) {
+            $colWidths[] = $column->width;
+            $colHeaders[] = $column->header;
+        }
+
+        $langs = array_merge(
+            $survey->additionalLanguages,
+            [$survey->language],
+        );
+        $data = [];
+
+        foreach ($questionGroups as $questionGroup) {
+            foreach ($langs as $lang) {
+                $groupArr = array();
+                foreach ($columns as $column) {
+                    $field = $column->data;
+                    if ($column->localized) {
+                        $table = $column->localized;
+                        $groupArr[$field] = $questionGroup->$table[$lang]->$field;
+                    } else {
+                        $groupArr[$field] = $questionGroup->$field;
+                    }
+                }
+                $data[] = $groupArr;
+            }
+        }
+
+        return json_encode(
+            [
+                'colHeaders' => $colHeaders,
+                'colWidths' => $colWidths,
+                'columns' => $columns,
+                'data' => $data
+            ]
+        );
     }
 
     /**
@@ -618,16 +706,23 @@ class MassAction extends PluginBase
             $baselang = $survey->language;
             $row = $request->getParam('row');
             $change = $request->getParam('change');
+            $lang = $request->getParam('lang');
 
             $questionGroup = QuestionGroup::model()->findByPk(['gid' => $row['gid']]);
 
             $changedFieldName = $change[1];
-            $column = $this->findQuestionColumnInfo($this->getQuestionGroupColumns(), $changedFieldName);
+            $column = $this->findQuestionColumnInfo(
+                array_merge(
+                    $this->getQuestionGroupColumns(),
+                    $this->getLocalizedQuestionGroupColumns(),
+                ),
+                $changedFieldName
+            );
             $newValue = $change[3];
 
             if ($column->localized) {
                 $table = $column->localized;
-                $l10n = $questionGroup->$table[$baselang];
+                $l10n = $questionGroup->$table[$lang];
                 $l10n->$changedFieldName = $newValue;
                 $l10n->save();
             } else {
@@ -844,8 +939,6 @@ class MassAction extends PluginBase
             new Column(['data' => 'gid', 'header' => gT('Group'), 'readonly' => true, 'width' => 50]),
             new Column(['data' => 'type', 'header' => gT('Type'), 'readonly' => true, 'width' => 50]),
             new Column(['header' => gT('Code'), 'data' => 'title']),
-            //new Column(['header' => gT('Question'), 'data' => 'question', 'width' => 300, 'localized' => 'questionl10ns']),
-            //new Column(['header' => gT('Help'), 'data' => 'help', 'width' => 300, 'localized' => 'questionl10ns']),
             new Column(['header' => gT('Mandatory'), 'data'=> 'mandatory', 'width' => 0]),
             new Column(['header' => gT('Other'), 'data'=> 'other', 'width' => 50]),
             new Column(['header' => gT('Relevance equation'), 'data' => 'relevance']),
@@ -869,12 +962,23 @@ class MassAction extends PluginBase
     /**
      * @return Column[]
      */
+    private function getLocalizedQuestionGroupColumns()
+    {
+        return [
+            new Column(['data' => 'gid', 'header' => gT('GID'), 'readonly' => true, 'width' => 50]),
+            new Column(['header' => gT('Lang'), 'data' => 'language', 'readonly' => true, 'width' => 50, 'localized' => 'questiongroupl10ns']),
+            new Column(['header' => gT('Title'), 'data' => 'group_name', 'width' => 300, 'localized' => 'questiongroupl10ns']),
+            new Column(['header' => gT('Description'), 'data' => 'description', 'width' => 300, 'localized' => 'questiongroupl10ns']),
+        ];
+    }
+
+    /**
+     * @return Column[]
+     */
     private function getQuestionGroupColumns()
     {
         return [
             new Column(['data' => 'gid', 'header' => gT('GID'), 'readonly' => true, 'width' => 50]),
-            new Column(['header' => gT('Title'), 'data' => 'group_name', 'width' => 300, 'localized' => 'questiongroupl10ns']),
-            new Column(['header' => gT('Description'), 'data' => 'description', 'width' => 300, 'localized' => 'questiongroupl10ns']),
             new Column(['header' => gT('Relevance equation'), 'data' => 'grelevance']),
             new Column(['header' => gT('Randomization group'), 'data' => 'randomization_group']),
         ];

@@ -38,22 +38,22 @@ $(document).ready(function() {
      */
     LS.plugin.massAction.afterChange = function(change, action, data, saveLink)
     {
-        if (change === null)
-        {
+        if (change === null) {
             return;
         }
 
         $('#mass-action-saving').removeClass('d-none');
 
+        console.log('change', change);
         var change = change[0];  // Only one change
         var rowNumber = change[0];
         var columnName = change[1];
         var oldValue = change[2];
         var newValue = change[3];
         var row = data.data[rowNumber];
+        var lang = row.language;
 
-        if (row === undefined)
-        {
+        if (row === undefined) {
             throw "Internal error: found no row with number " + rowNumber;
         }
 
@@ -63,10 +63,11 @@ $(document).ready(function() {
             method: 'POST',
             url: saveLink,
             data: {
-                row: row,
-                change: change,
-                surveyId: LS.plugin.massAction.surveyId,
-                YII_CSRF_TOKEN: csrfToken
+              row,
+              change,
+              lang,
+              surveyId: LS.plugin.massAction.surveyId,
+              YII_CSRF_TOKEN: csrfToken
             }
         }).done(function(response) {
             $('#mass-action-saving').addClass('d-none');
@@ -115,8 +116,7 @@ $(document).ready(function() {
 
             var data = JSON.parse(data);
 
-            if (data.result == 'error')
-            {
+            if (data.result == 'error') {
                 $('#mass-action-error-message').html(data.message);
                 $('#mass-action-saving-error').removeClass('d-none');
                 $('#mass-action-saving-error').show();
@@ -163,23 +163,20 @@ $(document).ready(function() {
             $('#mass-action-replace-button').on('click', function() {
 
                 // Abort if there's no latest search
-                if (latestSearch === null)
-                {
+                if (latestSearch === null) {
                     return;
                 }
 
                 var replaceString = $('#mass-action-replace-field').val();
 
                 // Abort if there's nothing to replace with
-                if (replaceString == '')
-                {
+                if (replaceString == '') {
                     return;
                 }
 
                 var searchString = $('#mass-action-search-field').val();
 
-                if (searchString == '')
-                {
+                if (searchString == '') {
                     return;
                 }
 
@@ -197,8 +194,7 @@ $(document).ready(function() {
                     if (cellData.replace) {
                         var newCellData = cellData.replace(regexp, replaceString);
                         hot.setDataAtCell(cell.row, cell.col, newCellData);
-                    }
-                    else {
+                    } else {
                         // Readonly field?
                     }
                 });
@@ -234,14 +230,27 @@ $(document).ready(function() {
     /**
      * Load question groups into handsontable
      */
-    LS.plugin.massAction.loadQuestionGroups = function()
+    LS.plugin.massAction.loadQuestionGroupTexts = function()
     {
         var links = {
-            getLink: LS.plugin.massAction.getQuestionGroupsLink,
+            getLink: LS.plugin.massAction.getQuestionGroupTextsLink,
             saveLink: LS.plugin.massAction.saveQuestionGroupChangeLink
         };
         LS.plugin.massAction.load(links);
     }
+
+    /**
+     * Load question groups into handsontable
+     */
+    LS.plugin.massAction.loadQuestionGroupAttributes = function()
+    {
+        var links = {
+            getLink: LS.plugin.massAction.getQuestionGroupAttributesLink,
+            saveLink: LS.plugin.massAction.saveQuestionGroupChangeLink
+        };
+        LS.plugin.massAction.load(links);
+    }
+
 
     /**
      * Load tokens into handsontable
