@@ -158,14 +158,24 @@ class MassAction extends PluginBase
             $surveyId = Yii::app()->request->getParam('surveyId');
         }
 
-        $getQuestionsLink = Yii::app()->createUrl(
+        $getQuestionTextsLink = Yii::app()->createUrl(
             'plugins/direct',
             array(
                 'plugin' => 'MassAction',
-                'function' => 'getQuestions',
+                'function' => 'getQuestionTexts',
                 'surveyId' => $surveyId
             )
         );
+
+        $getQuestionAttributesLink = Yii::app()->createUrl(
+            'plugins/direct',
+            array(
+                'plugin' => 'MassAction',
+                'function' => 'getQuestionAttributes',
+                'surveyId' => $surveyId
+            )
+        );
+
 
         $saveQuestionChangeLink = Yii::app()->createUrl(
             'plugins/direct',
@@ -214,7 +224,8 @@ class MassAction extends PluginBase
 
         $data = array();
         $data['surveyId'] = $surveyId;
-        $data['getQuestionsLink'] = $getQuestionsLink;
+        $data['getQuestionTextsLink'] = $getQuestionTextsLink;
+        $data['getQuestionAttributesLink'] = $getQuestionAttributesLink;
         $data['getQuestionGroupsLink'] = $getQuestionGroupsLink;
         $data['getTokensLink'] = $getTokensLink;
         $data['saveQuestionChangeLink'] = $saveQuestionChangeLink;
@@ -366,7 +377,7 @@ class MassAction extends PluginBase
      * @param LSHttpRequest $request
      * @return string JSON
      */
-    public function getQuestions(LSHttpRequest $request)
+    public function getQuestionTexts(LSHttpRequest $request)
     {
         $surveyId = $request->getParam('surveyId');
 
@@ -384,8 +395,32 @@ class MassAction extends PluginBase
         $survey = Survey::model()->findByPk($surveyId);
 
         $questions = Question::model()->findAllByAttributes(['sid' => $surveyId]);
+        $questionColumns = $this->getLocalizedQuestionColumns();
 
-        return $this->questionsToJSON($questions, $survey);
+        return $this->localizedQuestionsToJSON($questions, $survey, $questionColumns);
+    }
+
+    public function getQuestionAttributes(LSHttpRequest $request)
+    {
+        $surveyId = $request->getParam('surveyId');
+
+        // Check read permission
+        if (!Permission::model()->hasSurveyPermission($surveyId, 'surveycontent', 'read')) {
+            return json_encode(
+                [
+                    'result' => 'error',
+                    'message' => "You don't have access to read survey content"
+                ]
+            );
+
+        }
+
+        $survey = Survey::model()->findByPk($surveyId);
+
+        $questions = Question::model()->findAllByAttributes(['sid' => $surveyId]);
+        $questionColumns = $this->getQuestionColumns();
+
+        return $this->questionsToJSON($questions, $survey, $questionColumns);
     }
 
     /**
@@ -395,14 +430,12 @@ class MassAction extends PluginBase
      * @param Question[] $questions
      * @return string
      */
-    protected function questionsToJSON(array $questions, Survey $survey)
+    protected function questionsToJSON(array $questions, Survey $survey, array $questionColumns)
     {
         $data = array();
         $colWidths = array();
         $colHeaders = array();
         $columns = array();
-        $questionColumns = $this->getQuestionColumns();
-        $baselang = $survey->language;
 
         foreach ($questionColumns as $column) {
             $colWidths[] = $column->width;
@@ -416,14 +449,10 @@ class MassAction extends PluginBase
         foreach ($questions as $question) {
             $attributes = QuestionAttribute::model()->getQuestionAttributes($question->qid);
             if (is_array($attributes)) {
-                $questionArr = array();
+                $questionArr = [];
                 foreach ($questionColumns as $column) {
                     $field = $column->data;
-                    if ($column->localized) {
-                        $table = $column->localized;
-                        $questionArr[$field] = $question->$table[$baselang]->$field;
-                    }
-                    else if (isset($question->$field)) {
+                    if (isset($question->$field)) {
                         $questionArr[$field] = $question->$field;
                     } elseif (isset($attributes[$field])) {
                         $questionArr[$field] = $attributes[$field];
@@ -443,7 +472,54 @@ class MassAction extends PluginBase
                 'data' => $data
             ]
         );
+    }
 
+    protected function localizedQuestionsToJSON(array $questions, Survey $survey, array $questionColumns)
+    {
+        $data = [];
+        $colWidths = [];
+        $colHeaders = [];
+        $columns = [];
+
+        foreach ($questionColumns as $column) {
+            $colWidths[] = $column->width;
+            $colHeaders[] = $column->header;
+            $columns[] = array(
+                'data' => $column->data,
+                'readonly' => $column->readonly
+            );
+        }
+
+        $langs = array_merge(
+            $survey->additionalLanguages,
+            [$survey->language],
+        );
+
+        foreach ($questions as $question) {
+            foreach ($langs as $lang) {
+                $questionArr = [];
+                foreach ($questionColumns as $column) {
+                    $field = $column->data;
+                    if ($column->localized) {
+                        $table = $column->localized;
+                        $questionArr[$field] = $question->$table[$lang]->$field;
+                    }
+                    if (isset($question->$field)) {
+                        $questionArr[$field] = $question->$field;
+                    }
+                }
+                $data[] = $questionArr;
+            }
+        }
+
+        return json_encode(
+            [
+                'colHeaders' => $colHeaders,
+                'colWidths' => $colWidths,
+                'columns' => $columns,
+                'data' => $data
+            ]
+        );
     }
 
     /**
@@ -745,6 +821,18 @@ class MassAction extends PluginBase
         $event->append('menuItems', array($menuItem));
     }
 
+    private function getLocalizedQuestionColumns()
+    {
+        return [
+            new Column(['data' => 'qid', 'header' => gT('ID'), 'readonly' => true]),
+            new Column(['data' => 'gid', 'header' => gT('Group'), 'readonly' => true, 'width' => 50]),
+            new Column(['data' => 'type', 'header' => gT('Type'), 'readonly' => true, 'width' => 50]),
+            new Column(['header' => gT('Lang'), 'data' => 'language', 'readonly' => true, 'width' => 50, 'localized' => 'questionl10ns']),
+            new Column(['header' => gT('Code'), 'data' => 'title']),
+            new Column(['header' => gT('Question'), 'data' => 'question', 'width' => 300, 'localized' => 'questionl10ns']),
+            new Column(['header' => gT('Help'), 'data' => 'help', 'width' => 300, 'localized' => 'questionl10ns']),
+        ];
+    }
 
     /**
      * @return Column[]
@@ -756,8 +844,8 @@ class MassAction extends PluginBase
             new Column(['data' => 'gid', 'header' => gT('Group'), 'readonly' => true, 'width' => 50]),
             new Column(['data' => 'type', 'header' => gT('Type'), 'readonly' => true, 'width' => 50]),
             new Column(['header' => gT('Code'), 'data' => 'title']),
-            new Column(['header' => gT('Question'), 'data' => 'question', 'width' => 300, 'localized' => 'questionl10ns']),
-            new Column(['header' => gT('Help'), 'data' => 'help', 'width' => 300, 'localized' => 'questionl10ns']),
+            //new Column(['header' => gT('Question'), 'data' => 'question', 'width' => 300, 'localized' => 'questionl10ns']),
+            //new Column(['header' => gT('Help'), 'data' => 'help', 'width' => 300, 'localized' => 'questionl10ns']),
             new Column(['header' => gT('Mandatory'), 'data'=> 'mandatory', 'width' => 0]),
             new Column(['header' => gT('Other'), 'data'=> 'other', 'width' => 50]),
             new Column(['header' => gT('Relevance equation'), 'data' => 'relevance']),

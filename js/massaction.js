@@ -208,12 +208,24 @@ $(document).ready(function() {
     }
 
     /**
-     * Load questions into handsontable
+     * Load localized question texts into handsontable
      */
-    LS.plugin.massAction.loadQuestions = function()
+    LS.plugin.massAction.loadQuestionTexts = function()
     {
         var links = {
-            getLink: LS.plugin.massAction.getQuestionsLink,
+            getLink: LS.plugin.massAction.getQuestionTextsLink,
+            saveLink: LS.plugin.massAction.saveQuestionChangeLink
+        };
+        LS.plugin.massAction.load(links);
+    }
+
+    /**
+     * Load non-localized question attributes into handsontable
+     */
+    LS.plugin.massAction.loadQuestionAttributes = function()
+    {
+        var links = {
+            getLink: LS.plugin.massAction.getQuestionAttributesLink,
             saveLink: LS.plugin.massAction.saveQuestionChangeLink
         };
         LS.plugin.massAction.load(links);

@@ -4,7 +4,8 @@
         <h3>Mass action</h3>
 
         <!-- Load buttons -->
-        <div class='btn btn-outline-secondary' onclick='LS.plugin.massAction.loadQuestions();'>Load questions</div>
+        <div class='btn btn-outline-secondary' onclick='LS.plugin.massAction.loadQuestionTexts();'>Load question texts</div>
+        <div class='btn btn-outline-secondary' onclick='LS.plugin.massAction.loadQuestionAttributes();'>Load question attrs</div>
         <div class='btn btn-outline-secondary' onclick='LS.plugin.massAction.loadQuestionGroups();'>Load question groups</div>
         <div class='btn btn-outline-secondary' onclick='LS.plugin.massAction.loadTokens();'>Load tokens</div>
 
@@ -36,7 +37,8 @@ var LS = LS || {};
 LS.plugin = LS.plugin || {};
 LS.plugin.massAction = LS.plugin.massAction || {};
 
-LS.plugin.massAction.getQuestionsLink = '{{getQuestionsLink}}';
+LS.plugin.massAction.getQuestionTextsLink = '{{getQuestionTextsLink}}';
+LS.plugin.massAction.getQuestionAttributesLink = '{{getQuestionAttributesLink}}';
 LS.plugin.massAction.getQuestionGroupsLink = '{{getQuestionGroupsLink}}';
 LS.plugin.massAction.getTokensLink = '{{getTokensLink}}';
 LS.plugin.massAction.saveQuestionChangeLink = '{{saveQuestionChangeLink}}';
